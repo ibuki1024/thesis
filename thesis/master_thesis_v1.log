@@ -1,4 +1,4 @@
-This is e-pTeX, Version 3.14159265-p3.8.0-180226-2.6 (utf8.euc) (TeX Live 2018) (preloaded format=platex 2019.4.5)  6 JAN 2021 21:01
+This is e-pTeX, Version 3.14159265-p3.8.0-180226-2.6 (utf8.euc) (TeX Live 2018) (preloaded format=platex 2019.4.5)  6 JAN 2021 22:44
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -388,18 +388,21 @@ File: control_path.png Graphic file (type bmp)
 <control_path.png>
  [6]
 
-LaTeX Font Warning: Font shape `JT1/mc/m/it' undefined
-(Font)              using `JT1/mc/m/n' instead on input line 284.
-
-
-LaTeX Font Warning: Font shape `JY1/mc/m/it' undefined
-(Font)              using `JY1/mc/m/n' instead on input line 284.
+LaTeX Warning: Reference `optimality' on page 7 undefined on input line 253.
 
 [7]
 
-LaTeX Warning: Citation `polya1945' on page 8 undefined on input line 308.
+LaTeX Font Warning: Font shape `JT1/mc/m/it' undefined
+(Font)              using `JT1/mc/m/n' instead on input line 293.
 
-[8]
+
+LaTeX Font Warning: Font shape `JY1/mc/m/it' undefined
+(Font)              using `JY1/mc/m/n' instead on input line 293.
+
+
+LaTeX Warning: Citation `polya1945' on page 8 undefined on input line 317.
+
+[8] [9]
 *geometry* verbose mode - [ newgeometry ] result:
 * driver: dvips
 * paper: <default>
@@ -434,7 +437,7 @@ LaTeX Warning: Citation `polya1945' on page 8 undefined on input line 308.
 
 File: logo.pdf Graphic file (type pdf)
 <logo.pdf>
- [9
+ [10
 
 
 
@@ -471,12 +474,12 @@ File: logo.pdf Graphic file (type pdf)
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
- [10
+ [11
 
 
 
 
-] [11
+] [12
 
 
 
@@ -491,10 +494,10 @@ LaTeX Warning: There were undefined references.
 Here is how much of TeX's memory you used:
  2654 strings out of 493281
  34080 string characters out of 6145042
- 117372 words of memory out of 5000000
+ 117363 words of memory out of 5000000
  6511 multiletter control sequences out of 15000+600000
  26437 words of font info for 103 fonts, out of 8000000 for 9000
  929 hyphenation exceptions out of 8191
  32i,15n,32p,798b,493s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on master_thesis_v1.dvi (14 pages, 35148 bytes).
+Output written on master_thesis_v1.dvi (15 pages, 36136 bytes).

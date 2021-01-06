@@ -16,8 +16,9 @@
 \contentsline {subsection}{\numberline {5.2}Non-Linear Case}{5}
 \contentsline {subsubsection}{\numberline {5.2.1}Initial Policy}{6}
 \contentsline {subsubsection}{\numberline {5.2.2}Learned Policy}{6}
-\contentsline {subsection}{\numberline {5.3}Optimality}{6}
-\contentsline {subsection}{\numberline {5.4}方策の最適性}{7}
-\contentsline {section}{\numberline {6}Conclusion}{7}
-\contentsline {section}{References}{7}
+\contentsline {subsection}{\numberline {5.3}Optimality1}{6}
+\contentsline {subsection}{\numberline {5.4}Optimality2}{7}
+\contentsline {subsection}{\numberline {5.5}Approximation Accuracy of Critic}{8}
+\contentsline {section}{\numberline {6}Conclusion}{8}
+\contentsline {section}{References}{8}
 \contentsline {section}{\numberline {A}Appendix}{8}
