@@ -1,5 +1,5 @@
 %%% Example for master's thesis (in English)
-\documentclass[english]{ampmt}             % pdflatex
+\documentclass[english, dvipdfmx]{ampmt}             % pdflatex
 %% \documentclass[dvipdfmx,english]{ampmt} % dvipdfmx
 
 %%% Class options:
@@ -7,17 +7,15 @@
 %%% Options for article or report are also accepted.
 
 %%% Title %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title[Construction of Mathematical Models\\
-    and Development of Efficient Algorithms]
-      {Construction of Mathematical Models and Development of
-        Efficient Algorithms}
+\title[Deep Reinforcement Learning for Optimal Self-Triggered Control]
+      {Deep Reinforcement Learning for Optimal Self-Triggered Control}
       % [title for spine (option)]{title}
 %%% Supervisors %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\supervisors{Taro JOHO}{Professor}             % First supervisor  {name}{title}
-            {Jiro KOGAKU}{Assistant Professor} % Second supervisor {name}{title}
+\supervisors{Yoshito OHTA}{Professor}             % First supervisor  {name}{title}
+            {Kenji KASHIMA}{Assistant Professor} % Second supervisor {name}{title}
             {}{}                               % Third supervisor  {name}{title}
 %%% Author %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\author{Saburo SURI}
+\author{Ibuki TAKEUCHI}
 %%% Submission date %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \submissiondate{2021}{February}   % {year}{month}
 %%% Width of a spine %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -70,74 +68,233 @@
 \setcounter{page}{1}
 %%% Body %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
-In this thesis, we construct the mathematical models of students who write
-the master's thesis and develop efficient algorithms for writing the master's
-thesis based on this model.
-By improving the previous study~\cite{suuri2010}, we construct more real models.
-Furthermore, we generate this thesis using the proposed algorithms.
 
-\section{Construction of mathematical models}
-In this section, we construct the mathematical models of students and
-the master's thesis.
+\section{Preliminaries}
+\subsection{Background of Deep Reinforcement Learning}
+Consider a malkov decision process $M$ given with tuple $M=\{S,A,T,d_0,r,\gamma\}$. Here, $S,A$ denotes state, action set, and $T(s^{'}|s,a)$ express transition probability. Also, $d_0,r(s,a),\gamma\in[0,1]$ are distribution of initial state, reward, discount factor respectively. \par
+Now, the purpose of reinforcement learning is to find a policy such that
+\begin{equation}
+	\pi^{*}=\argmax_{\pi}J(\pi) \label{purpose_of_rl}
+\end{equation} 
+where evaluation function $J(\pi)$ and (state) value function $V^{\pi}(s)$ is given as following:
+\begin{align}
+	V^{\pi}(s) &= \sum_{t=0}^{\infty}\gamma^tr(s_t, a_t)|_{a_t=\pi(s_t)}, s_0 = s\\
+	J(\pi) &= \expect_{s_0\sim d_0}[V^{\pi}(s_0)]
+\end{align}
+Here, we define $Q$ function, which is useful tool for analyzing reinforcement learning. $Q$ function is given as 
+\begin{align}
+	Q^{\pi}(s,a) &= r(s, a) + \gamma\sum_{t=1}^{\infty}\gamma^tr(s_t, a_t)|_{a_t=\pi(s_t)} \nonumber\\
+			    &= r(s, a) + \gamma V^{\pi}(s^{\prime}). \label{Q_func}
+\end{align}
+As showed in \eqref{Q_func}, $Q$ function express the value when agent select action $a$ freely and choose action according to the policy $\pi$ from next step. Thus, the $Q$-function is also known as the action value function.
 
-\subsection{Modeling of students' motivation}
-Let $x(t)$ denote the motivation of a student at time $t$.
-In the previous study~\cite{suuri2010}, the following model was proposed:
-\begin{equation}\label{eq:student}
-  x(t)=x_0 \rme^{-t/a},
+
+\subsection{Policy Iteration}
+There is an algorithm for achieving \eqref{purpose_of_rl}, called the policy iteration method. It consists in repeating the following two steps.
+\begin{enumerate}
+	\item Policy Evaluation: Find (or approximate) action value function $Q^{\pi}(s,a)$.
+	\item Policy Improvement: Update policy as $\pi(s)=\argmax_aQ^{\pi}(s,a)$.
+\end{enumerate}
+It is known that the optimal policy $\pi^{*}$ can be obtained by repeating the above two steps (Measure Improvement Theorem).
+
+
+
+
+
+\subsection{Algorithms adapted to the settings of state and action space}
+\label{sec:policy_improvement}
+In the case that both the state space and the action space take discrete values, it is easy to obtain
+$\pi(s)=\argmax_aQ^{\pi}(s,a)$, which appeared in the previous section, by storing $Q^{\pi}(s,a)$ in a table.\par
+Now, what about the case where the state space is continuous? Since the state $s$ takes a continuous value, it cannot be stored in a table. Therefore, Minh et al.\cite{DQN} took the approach of approximating $Q^{\pi}(s,a)$ by parametrizing it using a neural network. Since the action space is discrete, it is still possible to obtain $\argmax_aQ^{\pi}(s,a)$. \par
+Finally, in the case whrere both state and action space is continuous, the problem is that it is very expensive to obtain $\argmax_aQ^{\pi}(s,a)$. Thus, up to this point, the policy $\pi$ has been determined by the Q-function, but this approach cannot be taken when both spaces are continuous. 
+Therefore, the policy function is often parameterized as $\pi_{\theta}$ and the parameter $\theta$ is updated by gradient ascent. 
+
+\subsection{Deterministic Policy Gradient Method}
+Silver et al.\cite{DPG} finds the gradient for the evaluation function $J(\pi_{\theta})$, even if the policy $\pi(s)$ is defined as deterministic policy. This gradient is known as deteministic policy gradient(DPG), and it is calculate as following:
+\begin{align}
+	\nabla_{\theta}J(\pi_{\theta}) &= \expect_{s\sim\rho^{\pi_{\theta}}}[
+	\nabla_{\theta}\pi_{\theta}(s)\nabla_{a}Q^{\pi_{\theta}}(s, a)|_{a=\pi_{\theta}(s)}] \label{true_pg} 
+\end{align}
+where, 
+\begin{equation}
+	\rho^{\pi_{\theta}}(s) = \int_{S}\sum_{t=0}^{\infty}\gamma^td_0(s_0)\textrm{Pr}(s_0\to s, t,  \pi_{\theta})\textrm{d}s_0
 \end{equation}
-where $x_0$ and $a>0$ are the motivation at $t=0$ and the interest for
-the research theme, respectively.
-Figure~\ref{fig:student} shows an example of the time evolution of
-the model~\eqref{eq:student}.
-\begin{figure}[htbp]
-  \centering
-  \includegraphics{ampmt_figure.pdf}
-  \caption{Example of the time evolution of the model~\eqref{eq:student} with
-    $x_0=1$ and $a=1$.}
-  \label{fig:student}
+is discounted distribution.\par
+DDPG(Deep DPG) is a deep reinforcement learning algorithm which utilize this policy gradient. It adopts an Actor-Critic structure, and learns a critic network $Q(s,a|\omega)$ which approximates $Q^{\pi_{\theta}}$, and an actor network $\pi(s|\theta)=\pi_{\theta}$ which represents a measure $\pi$, respectively. The update algorithm of actor and critic is described below.\par
+DDPG uses mini-batch learning. First, update idea of critic is shown. The purpose of critic is to approximate $Q^{\pi}$. Because $Q$ function is able to be decomposed like \eqref{Q_func}, $Q(s,a|\omega)$ should also be updated to satisfy this relation. For that, parameter $\omega$ is updated to the direction where it minimize Temporal Difference(TD) error: 
+\begin{equation}
+	\textrm{TD} = Q(s,a|\omega) - \{r(s,a)+\gamma Q(s,\pi(s)|\omega)\}
+\end{equation}
+Since it is difficult to optimize for whole $(s,a)$ at once, DDPG uses the mean squared error for the mini-batch $E$ as the loss function and reduces it. \par
+Now, the above method of updating critic is supervised learning itself. Therefore, the data in the mini-batch must be i.i.d.. If the mini-batch $E$ uses the data of the last $N$ steps experienced by the agent, they are no longer independent. Hence, the agent stores the empirical data in a storage, called replay buffer, and randomly selects $N$ data from it to make a mini-batch to increase the variance of the mini-batch.\par
+Next update law of actor are shown. Because actor is the representation of policy function $\pi(s)$, policy gradient is used for its update. However, since correct $Q$-function as in equation \eqref{true_pg} cannot be used in DDPG, approximated policy gradient
+\begin{equation}
+	\expect_{s\sim\rho^{\pi}}[\nabla_{\theta}\pi_{\theta}(s)\nabla_{a}Q(s, a|\omega)|_{a=\pi_{\theta}(s)}] \simeq \nabla_{\theta}J(\pi_{\theta}) 
+\end{equation}
+ is used. Furthurmore, an approximation to the expectation is made like following:
+ \begin{equation}
+	\expect_{s\sim\rho^{\pi}}[\nabla_{\theta}\pi_{\theta}(s)\nabla_{a}Q(s, a|\omega)|_{a=\pi_{\theta}(s)}] \simeq \frac{1}{N}\sum_{s\in E}[\nabla_{\theta}\pi_{\theta}(s)\nabla_{a}Q(s, a|\omega)|_{a=\pi_{\theta}(s)}]. \label{expectation_approximation}
+\end{equation}
+Therefore, the accuracy of the approximation of the policy gradient may be greatly degraded by the accuracy of critic approximation and the distribution of mini-batch.
+
+
+\section{Problem Formulation}
+\subsection{Self-Triggered Control}
+We consider control system like Fig. \ref{image}.
+\begin{figure}[h]
+	\centering
+ 	\includegraphics[width=10cm]{event.png}
+ 	\caption{control system} \label{image}
 \end{figure}
+Here, the control target is a continuous-time system as in Equation \eqref{continuous_system}
+\begin{equation}
+	\dot{s} = h(s,u) \label{continuous_system}
+\end{equation}\par
+Now, we consider a feedback control for system \eqref{continuous_system}. In this paper, we call the observation of the state variable $s$ and the sending of the input signal to the actuator as "interaction". In the self-triggered control, the agent does not make interaction continuously, but after a communication interval $\tau$ seconds determined by the agent itself. In order to express it mathematically, we assume that the agent's control law $\pi(s)$ is a vector-valued function consisting of two elements, where the first element represents the input $u$ sent to the actuator and the second element represents the interval $\tau (sec)$. The input $u$ sent in the previous interaction is added until the time of the next interaction (ZOH control).
 
-The model~\eqref{eq:student} lacks
-\begin{itemize}
-\item recovery of the motivation because of the progress of the research
-  and tea break;
-\item final stretch before the deadline.
-\end{itemize}
+\subsection{Optimal Self-Triggered Control}
+The optimal self-triggered control law $\pi^{*}$ is defined as follows
+\begin{align}
+	\pi^{*} &= \argmax_{\pi}J(\pi) \label{optimal_policy}\\
+	J(\pi) &= \expect_{s_0\in d_0}[V^{\pi}(s_0)] \\
+	% V^{\pi}(s_0) &= \sum_{i=0}^{\infty} \gamma^i\{-s_i^{\top}Qs_i-\pi_1(s_i)^{\top}R\pi_1(s_i)+\lambda \pi_2(s_i)\} \\
+	V^{\pi}(s_0) &= \sum_{i=0}^{\infty} \gamma^i r^{\pi}_i \label{value} \\
+	r^{\pi}_i &= -\int_{T_i}^{T_{i+1}}s(t)^{\top}Qs(t)\textrm{d}t +\tau_ia_i^{\top}Ra_i + \lambda \tau_i, ~T_i = \sum_{l=0}^{i} \tau_l \label{reward}
+\end{align}
+where $i$ denote the number of interactions, and $a_i$ and $\tau_i$ be the outputs of the measures $\pi$ for the $i$th interaction, respectively. \par
 
-Let us improve the model~\eqref{eq:student}.
-...
+\section{Reinforcement Learning for Optimal Self-Triggered Control}
+In reinforcement learning, the agent is expected to perform interactions step by step. The self-triggered control problem considered in this paper, where the control target is given as a continuous-time system, satisfies the assumption of reinforcement learning by considering the communication with the actuator as one step.\par
 
-\subsection{Modeling of master's thesis}
-...
+\subsection{Model Settings}
+In the self-triggered control, the agent needs to decide  the input signal $u$ and the interval $\tau$ at each step. In this paper, the control law is given as a state feedback. Therefore, the policy function is given as follows:
+\begin{equation}
+	\pi(s) = \begin{bmatrix}u(s) & \tau(s)\end{bmatrix}^{\top}
+\end{equation}\par
+We use DDPG as reinforcement learning algorithm. As described in section 2, actor and critic is expressed as neural networks respectively. Experiments have shown that learning diverges when using a general network, so here we use the special network. The architecture of 2 networks is in Fig \ref{NN}.
+\begin{figure}[h]
+	\centering
+ 	\includegraphics[width=10cm]{model.png}
+ 	\caption{Agent Model} \label{NN}
+\end{figure}\\
+The activation function "original" shown in Fig \ref{NN} is defined as $0.99 \times \textrm{sigmoid} + 0.01$ to meet upper and lower limits of interval.
 
-\section{Development of efficient algorithms}
-In this section, we develop efficient algorithms for writing the master's thesis.
-...
+
+\section{Consideration}
+
+\subsection{Linear Case}
+First, we adopt reinforcement learning to self-triggered control for linear system. The control object is
+\begin{equation}
+	\dot{s} = As + Bu = \begin{bmatrix}-1& 4 \\ 2 & -3\end{bmatrix}s + \begin{bmatrix}2 \\ 4\end{bmatrix}u.
+\end{equation}
+
+
+\subsubsection{Initial Policy}
+For learning efficiency, we use $\pi_{\textrm{init}}$ such that
+\begin{equation}
+	\pi_{\textrm{init}} = \begin{bmatrix}-Ks&0.01\end{bmatrix}
+\end{equation}
+where $K$ is a feedback gain calculated by Linear Quadratic Regulator. This policy stabilize the system (really??).
+
+\subsubsection{Learned Policy}
+
+
+
+
+
+\subsection{Non-Linear Case}
+In this subsection, we investigate whether the self-triggered control law can be learned by reinforcement learning even when the control target is extended to non-linear systems, especially control affine systems. We consider an inverted pendulum, whose state-space representation is
+\begin{equation}
+	\odif{}{t}\begin{pmatrix}\theta \\ \dot{\theta}\end{pmatrix} = 
+		\begin{pmatrix}\dot{\theta} \\ \frac{3g}{2l}\sin{\theta} + \frac{3}{ml^2}a \end{pmatrix} \label{pendulum}.
+\end{equation}
+Therefore, for an inverted pendulum, the state variable $s$ is considered to be $\begin{pmatrix}\theta \\ \dot{\theta}\end{pmatrix}$.
+\par
+\subsubsection{Initial Policy}
+For learning efficiency, we use $\pi_{\textrm{init}}$ such that
+\begin{equation}
+	\pi_{\textrm{init}} = \begin{bmatrix}-Ks&0.2\end{bmatrix}
+\end{equation}
+where $K$ is a feedback gain calculated by Linear Quadratic Regulator. This policy stabilize the system (really??).
+
+\subsubsection{Learned Policy}
+Fig \ref{control_path} shows a control path with learned policy, stating from $s_0 = [3., 3.]$.
+\begin{figure}[h]
+	\centering
+ 	\includegraphics[width=12cm]{control_path.png}
+ 	\caption{A control path with learned policy $\pi_{\textrm{RL}}$} \label{control_path}
+\end{figure}\\
+The left panel of Figure \ref{control_path} plots the change of angle and communication interval $\tau$ against the control time. The time of the communication is marked with a dot. From this figure, we can see that the communication interval is determined flexibly at each interaction.\par
+Now, we confirm whether the learned policy $\pi_{\textrm{RL}}$ enlarge the evaluation function $J(\pi)$ compared from the initital policy $\pi_{\textrm{init}}$. Since $J(\pi) = \expect_{s_0}[V^{\pi}(s_0)]$, we generate 500 initial states $s_0$ according to the initial state distribution $d_0$, and average the results of $V^{\pi}(s_0)$. We conduct this approximation of expectation 1000 times. From the result
+\begin{equation}
+	J(\pi_{\textrm{init}}) = 4.23 \pm 0.083,~J(\pi_{\textrm{RL}}) = 37.12 \pm 0.071 \label{compare_policy}, 
+\end{equation}
+we can confirm $J(\pi_{\textrm{init}}) < J(\pi_{\textrm{RL}})$. It can be concluded that the policy has been improved.
+
+\subsection{Optimality}
+Is the policy $\pi_{\textrm{RL}}$ described in the previous section an optimal? If it is an optimal solution, the policy gradient must be $\bm{0}$. Therefore from equation \eqref{true_pg}, a condition
+\begin{equation}
+	\nabla_a Q^{\pi_{\textrm{RL}}}(s,a)|_{a=\pi_{\textrm{RL}}(s)} = \bm{0}
+\end{equation}
+should be met. \par
+Now, during the reinforcement learning process, the policy keeps changing at each step, so $Q^{\pi}(s,a)$, which is the approximation target of critic, also keeps changing. In addition, the empirical data used for critic's learning includes data of experience with policies different from the one to be evaluated. Thus, there is no guarantee that $Q^{\pi_{\textrm{RL}}}(s,a)$ is approximated correctly at each step. Therefore, we learned $Q^{\pi_{\textrm{RL}}}(s,a)$ by supervised learning of critic using only the data generated by interaction with a fixed policy.  Let $Q_{\textrm{ap}}^{\pi_{\textrm{RL}}}(s,a)$ denotes this approximated function. \par
+If $\pi_{\textrm{RL}}$ is the optimal policy, $\nabla_aQ_{\textrm{ap}}^{\pi_{\textrm{RL}}}(s,a)|_{\pi_{\textrm{RL}}}$ should be $\bm{0}$. However, when this is calculated in practice, we have
+\begin{equation}
+	\nabla_aQ_{\textrm{ap}}^{\pi_{\textrm{RL}}}(s,a) = \begin{bmatrix}0.03, 0.07\end{bmatrix}.
+\end{equation}
+Therefore, we find $\pi_{\textrm{RL}}$ is not the optimal policy.
+
+\subsection{方策の最適性}
+前節で述べた方策$\pi_{\textrm{RL}}$は最適解なのだろうか. もし最適解であれば方策勾配が$\bm{0}$となる必要があるため, 式\eqref{true_pg}より,
+\begin{equation}
+	\expect_{s\sim\rho^{\pi_{\textrm{RL}}}}[
+	\nabla_{\theta}\pi_{\textrm{RL}}(s)\nabla_{a}Q^{\pi_{\textrm{RL}}}(s, a)|_{a=\pi_{\textrm{RL}}(s)}] = \bm{0} \label{optimality}
+\end{equation}
+となるべきである. \par
+方策$\pi_{\textrm{RL}}$が式\eqref{optimality}を満たしているかを調査するために, $Q^{\pi_{\textrm{RL}}}(s,a)$を求めたい.そこで, 価値関数$V^{\pi_{\textrm{RL}}}(s) = \sum_{i=0}^{\infty}$の近似値をシミュレーションによって以下のように求め, 
+\begin{equation}
+	V^{\pi_{\textrm{RL}}}_{\textrm{ap}}(s) = \sum_{i=0}^{N}\gamma^i r(s_i,\pi_{\textrm{RL}}(s_i))
+\end{equation}
+$V^{\pi_{\textrm{RL}}}_{\textrm{ap}}$を用いて$Q^{\pi_{\textrm{RL}}}$の近似値を以下のようにして求める.
+\begin{equation}
+	Q^{\pi_{\textrm{RL}}}_{\textrm{apd}}(s,a) = r(s,a) + \gamma V^{\pi_{\textrm{RL}}}_{\textrm{ap}}(s^{\prime})
+\end{equation}
+$\gamma < 1$なので, シミュレーションのステップ数$N$を大きく取っておけば, $Q^{\pi_{\textrm{RL}}}_{\textrm{apd}}$はいい近似となる. ただし, 方策勾配の計算には$\nabla_{a}Q^{\pi_{\textrm{RL}}}(s, a)$を計算する必要があるが, $Q^{\pi_{\textrm{RL}}}_{\textrm{apd}}$は$(s,a)$における値を計算することしかできない. そこで, 適当な関数近似器を$Q^{\pi_{\textrm{RL}}}_{\textrm{apd}}(s,a)$を教師データとして教師あり学習することで関数$Q^{\pi_{\textrm{RL}}}$を近似する. この関数を$Q^{\pi_{\textrm{RL}}}_{\textrm{ap}}$とする.\par
+さて, $Q^{\pi_{\textrm{RL}}}_{\textrm{ap}}$を用いて方策勾配を計算すると
+\begin{equation}
+	\expect_{s\sim\rho^{\pi_{\textrm{RL}}}}[
+	\nabla_{\theta}\pi_{\textrm{RL}}(s)\nabla_{a}Q^{\pi_{\textrm{RL}}}(s, a)|_{a=\pi_{\textrm{RL}}(s)}] \neq \bm{0} 
+\end{equation}
+となり, 方策$\pi_{\textrm{RL}}$は最適方策ではないことがわかった.
+
 
 \section{Conclusion}
-In this thesis, we have constructed the mathematical models of students
-who write the master's thesis.
-We have developed efficient algorithms for writing the master's thesis
-based on the models and generated this thesis using the proposed algorithms.
-The experiments have shown that the proposed algorithms generate the thesis
-65536 times more efficiently than writing by oneself.
+
 
 %%% Acknowledgments %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \acknowledgment
 The author would like to express his sincere gratitude to Professor
-Taro Joho and Assistant Professor Jiro Kogaku for their helpful advices.
+Yoshito Ohta and Assistant Professor Kenji Kashima for their helpful advices.
 
 %%% References %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \addcontentsline{toc}{section}{\refname} % Add to the table of contents.
                                          % Delete if you use chapter option.
 \begin{thebibliography}{10}
-\bibitem{polya1945}
-  G.~Polya, \textit{How to solve it: a new aspect of mathematical method},
-  Princeton University Press, Princeton, 1945.
-\bibitem{suuri2010}
-  H.~Suri, \textit{A study on mathematical models and their validity},
-  Master's thesis, Graduate School of Informatics, Kyoto University, 2010.
+\bibitem{Q}
+C. J. Watkins, and P. Dayan. Q-learning. \textit{Machine Learning}, vol. 8, no. 3-4, pp. 279-292, 1992.
+\bibitem{DQN}
+V. Minh, K. Kavukcouglu, D. Silver. et al.. “Human-level control through deep reinforcement learning." \textit{Nature 518}, pp.529-533, 2015.
+\bibitem{DPG}
+D. Silver, G. Lever, N. Heess, T. Degris, D. Wierstra, et al.. “Deterministic Policy Gradient Algorithms." \textit{ICML Beijing, China.}, 2014, Beijing.
+\bibitem{DDPG}
+T. P. Lillicrap, J. J. Hunt, A. Pritzel, N.Heess, T. Erez, Y. Tassa, D. Silver, and D. Wierstra. Continuous control with deep reinforcement learning. \textit{International Conference on Learning Representations}, 2015.
+\bibitem{off-PAC}
+T. Degris, M. White and R. Sutton. “Off-Policy Actor-Critic." \textit{ICML Edinburgh, United Kingdom}, 2012.
+\bibitem{approximation}
+R. S. Sutton, D. McAllester, S. Singh, and Y. Mansour. "Policy gradient methods for reinforcement learning with function approximation." \textit{In Advances in Neural Information Processing Systems}, 2000.
+\bibitem{Adam}
+D. P. Kingma and J. Ba. “Adam: A Method for Stochastic Optimization." \textit{arXiv preprint arXiv: 1412.6980}, 2014.
+
 \end{thebibliography}
 %%% If you want to use BibTeX, delete the above and insert code here.
 %% \bibliographystyle{...}

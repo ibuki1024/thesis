@@ -1,0 +1,23 @@
+\contentsline {section}{\numberline {1}Introduction}{1}
+\contentsline {section}{\numberline {2}Preliminaries}{1}
+\contentsline {subsection}{\numberline {2.1}Background of Deep Reinforcement Learning}{1}
+\contentsline {subsection}{\numberline {2.2}Policy Iteration}{1}
+\contentsline {subsection}{\numberline {2.3}Algorithms adapted to the settings of state and action space}{2}
+\contentsline {subsection}{\numberline {2.4}Deterministic Policy Gradient Method}{2}
+\contentsline {section}{\numberline {3}Problem Formulation}{3}
+\contentsline {subsection}{\numberline {3.1}Self-Triggered Control}{3}
+\contentsline {subsection}{\numberline {3.2}Optimal Self-Triggered Control}{4}
+\contentsline {section}{\numberline {4}Reinforcement Learning for Optimal Self-Triggered Control}{4}
+\contentsline {subsection}{\numberline {4.1}Model Settings}{4}
+\contentsline {section}{\numberline {5}Consideration}{5}
+\contentsline {subsection}{\numberline {5.1}Linear Case}{5}
+\contentsline {subsubsection}{\numberline {5.1.1}Initial Policy}{5}
+\contentsline {subsubsection}{\numberline {5.1.2}Learned Policy}{5}
+\contentsline {subsection}{\numberline {5.2}Non-Linear Case}{5}
+\contentsline {subsubsection}{\numberline {5.2.1}Initial Policy}{6}
+\contentsline {subsubsection}{\numberline {5.2.2}Learned Policy}{6}
+\contentsline {subsection}{\numberline {5.3}Optimality}{6}
+\contentsline {subsection}{\numberline {5.4}方策の最適性}{7}
+\contentsline {section}{\numberline {6}Conclusion}{7}
+\contentsline {section}{References}{7}
+\contentsline {section}{\numberline {A}Appendix}{8}
