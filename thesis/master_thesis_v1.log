@@ -1,4 +1,4 @@
-This is e-pTeX, Version 3.14159265-p3.8.0-180226-2.6 (utf8.euc) (TeX Live 2018) (preloaded format=platex 2019.4.5)  7 JAN 2021 22:10
+This is e-pTeX, Version 3.14159265-p3.8.0-180226-2.6 (utf8.euc) (TeX Live 2018) (preloaded format=platex 2019.4.5)  7 JAN 2021 22:21
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -241,22 +241,22 @@ LaTeX Warning: Label `compare_policy' multiply defined.
 )
 \openout1 = `master_thesis_v1.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 62.
-LaTeX Font Info:    ... okay on input line 62.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 62.
-LaTeX Font Info:    ... okay on input line 62.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 62.
-LaTeX Font Info:    ... okay on input line 62.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 62.
-LaTeX Font Info:    ... okay on input line 62.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 62.
-LaTeX Font Info:    ... okay on input line 62.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 62.
-LaTeX Font Info:    ... okay on input line 62.
-LaTeX Font Info:    Checking defaults for JY1/mc/m/n on input line 62.
-LaTeX Font Info:    ... okay on input line 62.
-LaTeX Font Info:    Checking defaults for JT1/mc/m/n on input line 62.
-LaTeX Font Info:    ... okay on input line 62.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 63.
+LaTeX Font Info:    ... okay on input line 63.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 63.
+LaTeX Font Info:    ... okay on input line 63.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 63.
+LaTeX Font Info:    ... okay on input line 63.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 63.
+LaTeX Font Info:    ... okay on input line 63.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 63.
+LaTeX Font Info:    ... okay on input line 63.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 63.
+LaTeX Font Info:    ... okay on input line 63.
+LaTeX Font Info:    Checking defaults for JY1/mc/m/n on input line 63.
+LaTeX Font Info:    ... okay on input line 63.
+LaTeX Font Info:    Checking defaults for JT1/mc/m/n on input line 63.
+LaTeX Font Info:    ... okay on input line 63.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: dvips
@@ -324,11 +324,11 @@ LaTeX Font Info:    ... okay on input line 62.
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-LaTeX Font Info:    Try loading font information for U+msa on input line 65.
+LaTeX Font Info:    Try loading font information for U+msa on input line 66.
 (/usr/local/texlive/2018/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 65.
+LaTeX Font Info:    Try loading font information for U+msb on input line 66.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
@@ -341,18 +341,18 @@ File: logo.pdf Graphic file (type pdf)
 
 ]
 LaTeX Font Info:    Font shape `JT1/mc/bx/n' in size <10.95> not available
-(Font)              Font shape `JT1/gt/m/n' tried instead on input line 66.
+(Font)              Font shape `JT1/gt/m/n' tried instead on input line 67.
 LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <10.95> not available
-(Font)              Font shape `JY1/gt/m/n' tried instead on input line 66.
+(Font)              Font shape `JY1/gt/m/n' tried instead on input line 67.
  [2
 
 
 
 ]
 LaTeX Font Info:    Font shape `JT1/mc/bx/n' in size <14.4> not available
-(Font)              Font shape `JT1/gt/m/n' tried instead on input line 67.
+(Font)              Font shape `JT1/gt/m/n' tried instead on input line 68.
 LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <14.4> not available
-(Font)              Font shape `JY1/gt/m/n' tried instead on input line 67.
+(Font)              Font shape `JY1/gt/m/n' tried instead on input line 68.
 
 (./master_thesis_v1.toc)
 \tf@toc=\write3
@@ -362,13 +362,13 @@ LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <14.4> not available
 
 
 ]
-Overfull \hbox (2.92346pt too wide) in paragraph at lines 73--73
+Overfull \hbox (2.92346pt too wide) in paragraph at lines 74--74
 []\OT1/cmr/m/n/10.95 Two ap-proaches that aban-don the pe-ri-odic com-mu-ni-ca-
 tion pat-tern are event-triggered
  []
 
 
-Overfull \hbox (4.59935pt too wide) in paragraph at lines 73--73
+Overfull \hbox (4.59935pt too wide) in paragraph at lines 74--74
 \OT1/cmr/m/n/10.95 (2007) and Wang and Lem-mon (2009), and self-triggered con-t
 rol (STC), see, e.g., Almeida,
  []
@@ -376,18 +376,18 @@ rol (STC), see, e.g., Almeida,
 [1
 
 ]
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 78.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 79.
  (/usr/local/texlive/2018/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 78.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 79.
 LaTeX Font Info:    Font shape `JT1/mc/bx/n' in size <12> not available
-(Font)              Font shape `JT1/gt/m/n' tried instead on input line 86.
+(Font)              Font shape `JT1/gt/m/n' tried instead on input line 87.
 LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <12> not available
-(Font)              Font shape `JY1/gt/m/n' tried instead on input line 86.
+(Font)              Font shape `JY1/gt/m/n' tried instead on input line 87.
 
-Overfull \hbox (0.93613pt too wide) in paragraph at lines 87--87
+Overfull \hbox (0.93613pt too wide) in paragraph at lines 88--88
 \OT1/cmr/m/n/10.95 de-notes state, ac-tion set, and $\OML/cmm/m/it/10.95 T\OT1/
 cmr/m/n/10.95 (\OML/cmm/m/it/10.95 s[]\OMS/cmsy/m/n/10.95 j\OML/cmm/m/it/10.95 
 s; a\OT1/cmr/m/n/10.95 )$ ex-press tran-si-tion prob-a-bil-ity. Also, $\OML/cmm
@@ -417,7 +417,7 @@ File: path_1.png Graphic file (type bmp)
 <path_1.png>
  [9]
 
-LaTeX Warning: Reference `optimality' on page 10 undefined on input line 289.
+LaTeX Warning: Reference `optimality' on page 10 undefined on input line 293.
 
 File: data_distribution.png Graphic file (type bmp)
 <data_distribution.png>
@@ -427,14 +427,14 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 [10] [11]
 
 LaTeX Font Warning: Font shape `JT1/mc/m/it' undefined
-(Font)              using `JT1/mc/m/n' instead on input line 358.
+(Font)              using `JT1/mc/m/n' instead on input line 362.
 
 
 LaTeX Font Warning: Font shape `JY1/mc/m/it' undefined
-(Font)              using `JY1/mc/m/n' instead on input line 358.
+(Font)              using `JY1/mc/m/n' instead on input line 362.
 
 
-LaTeX Warning: Citation `polya1945' on page 12 undefined on input line 384.
+LaTeX Warning: Citation `polya1945' on page 12 undefined on input line 388.
 
 [12]
 *geometry* verbose mode - [ newgeometry ] result:
@@ -529,12 +529,12 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 2684 strings out of 493281
- 34611 string characters out of 6145042
- 117426 words of memory out of 5000000
- 6534 multiletter control sequences out of 15000+600000
+ 2685 strings out of 493281
+ 34614 string characters out of 6145042
+ 117438 words of memory out of 5000000
+ 6535 multiletter control sequences out of 15000+600000
  26437 words of font info for 103 fonts, out of 8000000 for 9000
  929 hyphenation exceptions out of 8191
  32i,15n,32p,1373b,493s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on master_thesis_v1.dvi (18 pages, 49456 bytes).
+Output written on master_thesis_v1.dvi (18 pages, 49584 bytes).

@@ -34,6 +34,7 @@
 \newcommand{\rme}{\mathrm{e}}
 %\usepackage[top=20truemm,bottom=20truemm,left=25truemm,right=25truemm]{geometry}
 \usepackage{amsmath,ascmac,url,amsfonts,bm,here,algorithmic,algorithm,amsthm,color}
+\newcommand{\unc}[1]{\textcolor{red}{#1}} %unconfirmed data
 \newcommand{\argmax}{\mathop{\rm argmax}\limits}
 \newcommand{\argmin}{\mathop{\rm argmin}\limits} 
 \newcommand{\expect}{\mathbb{E}} 
@@ -182,7 +183,6 @@ The optimal self-triggered control law $\pi^{*}$ is defined as follows
 \begin{align}
 	\pi^{*} &= \argmax_{\pi}J(\pi) \label{optimal_policy}\\
 	J(\pi) &= \expect_{s_0\in d_0}[V^{\pi}(s_0)] \\
-	% V^{\pi}(s_0) &= \sum_{i=0}^{\infty} \gamma^i\{-s_i^{\top}Qs_i-\pi_1(s_i)^{\top}R\pi_1(s_i)+\lambda \pi_2(s_i)\} \\
 	V^{\pi}(s_0) &= \sum_{i=0}^{\infty} \gamma^i r^{\pi}_i \label{value} \\
 	r^{\pi}_i &= -\int_{T_i}^{T_{i+1}}s(t)^{\top}Qs(t)\textrm{d}t +\tau_ia_i^{\top}Ra_i + \lambda \tau_i, ~T_i = \sum_{l=0}^{i} \tau_l \label{reward}
 \end{align}
@@ -232,9 +232,11 @@ Fig \ref{path_l} shows a control path with learned policy, stating from $s_0 = [
 \end{figure}\\
 Figure \ref{path_l} shows, from top to bottom, the angle of the pendulum $\theta$, the control input $u$, and the boolean representing interaction. From this figure, we can see that the communication interval is determined flexibly at each interaction.\par
 Now, we confirm whether the learned policy $\pi_{\textrm{RL}}$ enlarge the evaluation function $J(\pi)$ compared from the initital policy $\pi_{\textrm{init}}$. Since $J(\pi) = \expect_{s_0}[V^{\pi}(s_0)]$, we generate 500 initial states $s_0$ according to the initial state distribution $d_0$, and average the results of $V^{\pi}(s_0)$. We conduct this approximation of expectation 1000 times. From the result
+\unc{
 \begin{equation}
 	J(\pi_{\textrm{init}}) = 4.23 \pm 0.083,~J(\pi_{\textrm{RL}}) = 37.12 \pm 0.071 \label{compare_policy}, 
 \end{equation}
+}
 we can confirm $J(\pi_{\textrm{init}}) < J(\pi_{\textrm{RL}})$. It can be concluded that the policy has been improved.
 
 \subsubsection{Comparison with Naiive Model Based Control}
@@ -243,9 +245,11 @@ In this section, we compare the control performance with that of a naively desig
 	\pi_{\textrm{MB}}(s) = \argmin_{u,\tau} \left\{\int_{0}^{\tau} s(t)^{\top}s(t)\textrm{d}t + u^2 - \lambda\tau + V_{\textrm{LQR}}(s^{\prime}(s,u,\tau))\right\}
 \end{equation}
 where $s(0) = s$. The control performance of $\pi_{\textrm{MB}}$ is 
+\unc{
 \begin{equation}
 	write~me
 \end{equation}
+}
 From the result, we can conclude that the control law obtained by our method outperforms the control law designed by a naive model-based design.
 
 
@@ -296,29 +300,29 @@ Next, the approximation of $Q^{\pi_{\textrm{RL}}}$ is calculated with $V^{\pi_{\
 \end{equation}
 Since $\gamma < 1$, $Q^{\pi_{\textrm{RL}}}_{\textrm{apd}}(s,a)$ is a good approximation if the number of simulation steps $N$ is sufficiently large. However, to compute the policy gradient, we need to compute $\nabla_{a}Q^{\pi_{\textrm{RL}}}(s, a)$, while $Q^{\pi_{\textrm{RL}}}_{\textrm{apd}}$ can only be computed the value at $(s,a)$. Then, we approximate the function $Q^{\pi_{\textrm{RL}}}_{\textrm{apd}}(s,a)$ by supervised learning with $Q^{\pi_{\{textrm{RL}}}_{\textrm{apd}}(s,a)$ as the teacher data. This function is defined as $Q^{\pi_{\textrm{RL}}}_{\textrm{ap}}$.\par
 Now, when we calculate the policy gradient using $Q^{\pi_{\textrm{RL}}}_{\textrm{ap}}$, we obtain
+\unc{
 \begin{equation}
 	\expect_{s\sim\rho^{\pi_{\textrm{RL}}}}[
 	\nabla_{\theta}\pi_{\textrm{RL}}(s)\nabla_{a}Q^{\pi_{\textrm{RL}}}(s, a)|_{a=\pi_{\textrm{RL}}(s)}] \neq \bm{0}, 
 \end{equation}
+}
 which means that the policy $\pi_{\textrm{RL}}$ is not an optimal measure. We will discuss the reason for this.
 
 \subsection{Approximation Accuracy of Critic}
 Since policy $\pi_{\textrm{RL}}$ makes
+\unc{
 \begin{equation}
 	\expect_{s\sim\rho^{\pi_{\textrm{RL}}}}[
 	\nabla_{\theta}\pi_{\textrm{RL}}(s)\nabla_{a}Q(s,a|\omega)|_{a=\pi_{\textrm{RL}}(s)}] \simeq \bm{0}
 \end{equation}
+}
 for critic network $Q(s,a|\omega)$, it is a optimal solution to make the approximated gradient be 0. Therefore, the reason why we could not learn the optimal strategy is considered to be the low approximation accuracy of critic. In this experiment, the exploration noise is given as $\sim$, and its scale is small. This leads to a bias in the distribution of the action $a$ in the replay buffer. For example, the distribution of actions experienced in the neighborhood of $s=\begin{bmatrix}0 & 0\end{bmatrix}$ is shown in Figure \ref{data_distribution}.
 \begin{figure}[h]
 	\centering
  	\includegraphics[width=8cm]{data_distribution.png}
  	\caption{Action distribution in replay buffer around $s=[0~0]$.} \label{data_distribution}
 \end{figure}\\
-Since the approximation accuracy of 
-\begin{equation}
-	\nabla_{a} Q(s,a|\omega)|_{a=\pi_{\theta}(s)}
-\end{equation}
-is crucial for the calculation of the policy gradient, the problem is the lack of data around $a=\pi_{\theta}(s)$ which is represented by the orange dot in Figure \ref{data_distribution}.
+Since the approximation accuracy of $\nabla_{a} Q(s,a|\omega)|_{a=\pi_{\theta}(s)}$ is crucial for the calculation of the policy gradient, the problem is the lack of data around $a=\pi_{\theta}(s)$ which is represented by the orange dot in Figure \ref{data_distribution}.
 
 
 \subsection{Ingenuity}
