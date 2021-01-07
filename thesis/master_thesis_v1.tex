@@ -7,8 +7,8 @@
 %%% Options for article or report are also accepted.
 
 %%% Title %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title[Deep Reinforcement Learning for Optimal Self-Triggered Control]
-      {Deep Reinforcement Learning for Optimal Self-Triggered Control}
+\title[Deep Reinforcement Learning for Self-Triggered Control]
+      {Deep Reinforcement Learning for Self-Triggered Control}
       % [title for spine (option)]{title}
 %%% Supervisors %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \supervisors{Yoshito OHTA}{Professor}             % First supervisor  {name}{title}
@@ -68,6 +68,17 @@
 \setcounter{page}{1}
 %%% Body %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
+ In many control applications, controllers are nowadays implemented using communication networks in which the control task has to share the communication resources with other tasks. Despite the fact that resources can be scarce, controllers are typically still implemented in a time-triggered fashion, in which control tasks are executed periodically. This design choice often leads to over-utilization of the available communication resources, and/or causes a limited lifetime of battery-powered devices, as it might not be necessary to execute the control task every period to guarantee the desired closed-loop performance. \par
+Also in the area of "sparse control" (Gallieri \& Maciejowski, 2012), in which it is desirable to limit the changes in certain actuator signals while still realizing specific control objectives, periodic execution of control tasks may not be optimal either. In both networked control systems with scarce communication resources and sparse control applications arises the fundamental problem of determining optimal sampling and communication strategies, where optimality needs to reflect both implementation cost (related to the number of communications and/or actuator changes) as well as control performance. It is expected that the solution to this problem results in control strategies that abandon the periodic time-triggered control paradigm. \par
+Two approaches that abandon the periodic communication pattern are event-triggered control (ETC), see, e.g., Arzen (1999), Astrom and Bernhardsson (1999) and Donkers and Heemels (2012), Heemels, Sandee, and van den Bosch (2008), Heemels et al. (1999), Henningsson, Johannesson, and Cervin (2008), Lunze and Lehmann (2010), Tabuada (2007) and Wang and Lemmon (2009), and self-triggered control (STC), see, e.g., Almeida, Silvestre, and Pascoal (2010, 2011), Anta and Tabuada (2010), Donkers, Tabuada, and Heemels (2012), Mazo, Anta, and Tabuada (2010), Velasco, Fuertes, and Marti (2003) and Wang and Lemmon (2009). Although ETC is effective in the reduction of communication or actuator movements, it was originally proposed for different reasons, including the reduction of the use of computational resources and dealing with the event-based nature of the plants to be controlled. In ETC and STC, the control law consists of two elements being a feedback controller that computes the control input, and a triggering mechanism that determines when the control input has to be updated. The difference between ETC and STC is that in the former the triggering consists of verifying a specific condition continuously and when it becomes true, the control task is triggered, while in the latter at an update time the next update time is pre-computed. \par
+At present ETC and STC form popular research areas. However, two important issues have only received marginal attention: (i) the co-design of both the feedback law and the triggering mechanism, and (ii) the provision of performance guarantees (by design). To elaborate on (i), note that current design methods for ETC and STC are mostly emulation-based approaches, by which we mean that the feedback controller is designed without considering the scarcity in the system’s resources. The triggering mechanism is only designed in a subsequent phase, where the controller has already been fixed. Since the feedback controller is designed before the triggering mechanism, it is difficult, if not impossible, to obtain an optimal design of the combined feedback controller and triggering mechanism in the sense that the minimum number of control executions is achieved while guaranteeing closed-loop stability and a desired level of performance. \par
+By the way, artificial intelligence is nowadays used in various situations, notably in automatic driving technology, and the development of research on the subject of artificial intelligence is remarkable. One of the concepts to realize artificial intelligence is reinforcement learning. Reinforcement learning is an algorithm that learns behaviors that maximize the long-term benefits by repeated trial and error. In addition, although not mathematically proven, reinforcement learning has been used to obtain meaningful results for nonlinear systems. In this paper, we investigate the usefulness of reinforcement learning as a method to realize the self-triggered control law. \par
+The two main contributions of this research are
+\begin{itemize}
+	\item To obtain a state feedback control law that outperforms the control performance of a naively designed simulation-based self-triggered control law.
+	\item To confirm the usefulness of reinforcement learning for self-triggered control not only for linear systems but also for non-linear systems.
+\end{itemize}
+
 
 
 
@@ -210,15 +221,32 @@ For learning efficiency, we use $\pi_{\textrm{init}}$ such that
 \begin{equation}
 	\pi_{\textrm{init}} = \begin{bmatrix}-Ks&0.01\end{bmatrix}
 \end{equation}
-where $K$ is a feedback gain calculated by Linear Quadratic Regulator. This policy stabilize the system (really??).
+where $K$ is a feedback gain calculated by Linear Quadratic Regulator. This policy stabilize the system.
 
 \subsubsection{Learned Policy}
+Fig \ref{path_l} shows a control path with learned policy, stating from $s_0 = [3., 3.]$.
+\begin{figure}[h]
+	\centering
+ 	\includegraphics[width=8cm]{path_l.png}
+ 	\caption{A control path with learned policy $\pi_{\textrm{RL}}$} \label{path_l}
+\end{figure}\\
+Figure \ref{path_l} shows, from top to bottom, the angle of the pendulum $\theta$, the control input $u$, and the boolean representing interaction. From this figure, we can see that the communication interval is determined flexibly at each interaction.\par
+Now, we confirm whether the learned policy $\pi_{\textrm{RL}}$ enlarge the evaluation function $J(\pi)$ compared from the initital policy $\pi_{\textrm{init}}$. Since $J(\pi) = \expect_{s_0}[V^{\pi}(s_0)]$, we generate 500 initial states $s_0$ according to the initial state distribution $d_0$, and average the results of $V^{\pi}(s_0)$. We conduct this approximation of expectation 1000 times. From the result
+\begin{equation}
+	J(\pi_{\textrm{init}}) = 4.23 \pm 0.083,~J(\pi_{\textrm{RL}}) = 37.12 \pm 0.071 \label{compare_policy}, 
+\end{equation}
+we can confirm $J(\pi_{\textrm{init}}) < J(\pi_{\textrm{RL}})$. It can be concluded that the policy has been improved.
 
 \subsubsection{Comparison with Naiive Model Based Control}
-
-
-
-
+In this section, we compare the control performance with that of a naively designed model-based self-triggered control law $\pi_{\textrm{MB}}$. The control law $\pi_{\textrm{MB}}$ is defined as the solution of 
+\begin{equation}
+	\pi_{\textrm{MB}}(s) = \argmin_{u,\tau} \left\{\int_{0}^{\tau} s(t)^{\top}s(t)\textrm{d}t + u^2 - \lambda\tau + V_{\textrm{LQR}}(s^{\prime}(s,u,\tau))\right\}
+\end{equation}
+where $s(0) = s$. The control performance of $\pi_{\textrm{MB}}$ is 
+\begin{equation}
+	write~me
+\end{equation}
+From the result, we can conclude that the control law obtained by our method outperforms the control law designed by a naive model-based design.
 
 
 \subsection{Non-Linear Case}
@@ -245,8 +273,8 @@ Fig \ref{path_1} shows a control path with learned policy, stating from $s_0 = [
  	\includegraphics[width=8cm]{path_1.png}
  	\caption{A control path with learned policy $\pi_{\textrm{RL}}$} \label{path_1}
 \end{figure}\\
-Figure \ref{path_1} shows, from top to bottom, the angle of the pendulum $\theta$, the control input $u$, and the boolean representing interaction. From this figure, we can see that the communication interval is determined flexibly at each interaction.\par
-Now, we confirm whether the learned policy $\pi_{\textrm{RL}}$ enlarge the evaluation function $J(\pi)$ compared from the initital policy $\pi_{\textrm{init}}$. Since $J(\pi) = \expect_{s_0}[V^{\pi}(s_0)]$, we generate 500 initial states $s_0$ according to the initial state distribution $d_0$, and average the results of $V^{\pi}(s_0)$. We conduct this approximation of expectation 1000 times. From the result
+The content of Fig \ref{path_1} is same as Fig \ref{path_l}.
+Now, we confirm whether the learned policy $\pi_{\textrm{RL}}$ enlarge the evaluation function $J(\pi)$ compared from the initital policy $\pi_{\textrm{init}}$.  As in linear case, we approximate $J(\pi) = \expect_{s_0}[V^{\pi}(s_0)]$ in the same way. From the result
 \begin{equation}
 	J(\pi_{\textrm{init}}) = 4.23 \pm 0.083,~J(\pi_{\textrm{RL}}) = 37.12 \pm 0.071 \label{compare_policy}, 
 \end{equation}
@@ -312,7 +340,8 @@ As a result of reinforcement learning using this search method, the obtained pol
 
 
 \section{Conclusion}
-本稿では, 最適セルフトリガー制御に対する強化学習
+In this paper, a method for obtaining the state feedback control law is proposed. In particular, it is confirmed by numerical examples that the control law obtained by our method outperforms the control law designed by a naive model-based design. \par 
+Furthermore, we also tackle the self-triggered control of nonlinear systems, which has not been considered in previous studies, and successfully obtain useful control laws. 
 
 
 
@@ -339,6 +368,8 @@ T. Degris, M. White and R. Sutton. “Off-Policy Actor-Critic." \textit{ICML Edi
 R. S. Sutton, D. McAllester, S. Singh, and Y. Mansour. "Policy gradient methods for reinforcement learning with function approximation." \textit{In Advances in Neural Information Processing Systems}, 2000.
 \bibitem{Adam}
 D. P. Kingma and J. Ba. “Adam: A Method for Stochastic Optimization." \textit{arXiv preprint arXiv: 1412.6980}, 2014.
+\bibitem{STC}
+T. Gommans, D. Antunes, T. Donkers, P. Tabuada, and M. Heemels. “Self-triggered linear quadratic control.” \textit{Automatica}, vol. 50, no. 4, pp. 1279-1287, 2014.
 
 \end{thebibliography}
 %%% If you want to use BibTeX, delete the above and insert code here.

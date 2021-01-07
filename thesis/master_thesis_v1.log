@@ -1,4 +1,4 @@
-This is e-pTeX, Version 3.14159265-p3.8.0-180226-2.6 (utf8.euc) (TeX Live 2018) (preloaded format=platex 2019.4.5)  7 JAN 2021 20:36
+This is e-pTeX, Version 3.14159265-p3.8.0-180226-2.6 (utf8.euc) (TeX Live 2018) (preloaded format=platex 2019.4.5)  7 JAN 2021 22:10
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -234,7 +234,11 @@ File: dvipsnam.def 2016/06/17 v3.0m Driver-dependent file (DPC,SPQR)
 ))
 \c@th.=\count114
 
-(./master_thesis_v1.aux)
+(./master_thesis_v1.aux
+
+LaTeX Warning: Label `compare_policy' multiply defined.
+
+)
 \openout1 = `master_thesis_v1.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 62.
@@ -358,12 +362,32 @@ LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <14.4> not available
 
 
 ]
-LaTeX Font Info:    Font shape `JT1/mc/bx/n' in size <12> not available
-(Font)              Font shape `JT1/gt/m/n' tried instead on input line 74.
-LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <12> not available
-(Font)              Font shape `JY1/gt/m/n' tried instead on input line 74.
+Overfull \hbox (2.92346pt too wide) in paragraph at lines 73--73
+[]\OT1/cmr/m/n/10.95 Two ap-proaches that aban-don the pe-ri-odic com-mu-ni-ca-
+tion pat-tern are event-triggered
+ []
 
-Overfull \hbox (0.93613pt too wide) in paragraph at lines 75--75
+
+Overfull \hbox (4.59935pt too wide) in paragraph at lines 73--73
+\OT1/cmr/m/n/10.95 (2007) and Wang and Lem-mon (2009), and self-triggered con-t
+rol (STC), see, e.g., Almeida,
+ []
+
+[1
+
+]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 78.
+ (/usr/local/texlive/2018/texmf-dist/tex/latex/base/omscmr.fd
+File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 78.
+LaTeX Font Info:    Font shape `JT1/mc/bx/n' in size <12> not available
+(Font)              Font shape `JT1/gt/m/n' tried instead on input line 86.
+LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <12> not available
+(Font)              Font shape `JY1/gt/m/n' tried instead on input line 86.
+
+Overfull \hbox (0.93613pt too wide) in paragraph at lines 87--87
 \OT1/cmr/m/n/10.95 de-notes state, ac-tion set, and $\OML/cmm/m/it/10.95 T\OT1/
 cmr/m/n/10.95 (\OML/cmm/m/it/10.95 s[]\OMS/cmsy/m/n/10.95 j\OML/cmm/m/it/10.95 
 s; a\OT1/cmr/m/n/10.95 )$ ex-press tran-si-tion prob-a-bil-ity. Also, $\OML/cmm
@@ -371,50 +395,48 @@ s; a\OT1/cmr/m/n/10.95 )$ ex-press tran-si-tion prob-a-bil-ity. Also, $\OML/cmm
 5 )\OML/cmm/m/it/10.95 ; ^^M \OMS/cmsy/m/n/10.95 2
  []
 
-[1
-
-] [2]
+[2] [3] [4]
 File: event.png Graphic file (type bmp)
 <event.png>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[3] [4]
+ [5]
 File: model.png Graphic file (type bmp)
 <model.png>
- [5]
-File: path_1.png Graphic file (type bmp)
-<path_1.png>
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 [6]
-
-LaTeX Warning: Reference `optimality' on page 7 undefined on input line 260.
-
-[7]
-File: data_distribution.png Graphic file (type bmp)
-<data_distribution.png>
+File: path_l.png Graphic file (type bmp)
+<path_l.png>
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[8]
+[7] [8]
+File: path_1.png Graphic file (type bmp)
+<path_1.png>
+ [9]
+
+LaTeX Warning: Reference `optimality' on page 10 undefined on input line 289.
+
+File: data_distribution.png Graphic file (type bmp)
+<data_distribution.png>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[10] [11]
 
 LaTeX Font Warning: Font shape `JT1/mc/m/it' undefined
-(Font)              using `JT1/mc/m/n' instead on input line 328.
+(Font)              using `JT1/mc/m/n' instead on input line 358.
 
 
 LaTeX Font Warning: Font shape `JY1/mc/m/it' undefined
-(Font)              using `JY1/mc/m/n' instead on input line 328.
+(Font)              using `JY1/mc/m/n' instead on input line 358.
 
-[9]
 
-LaTeX Warning: Citation `polya1945' on page 10 undefined on input line 352.
+LaTeX Warning: Citation `polya1945' on page 12 undefined on input line 384.
 
-[10]
+[12]
 *geometry* verbose mode - [ newgeometry ] result:
 * driver: dvips
 * paper: <default>
@@ -449,7 +471,7 @@ LaTeX Warning: Citation `polya1945' on page 10 undefined on input line 352.
 
 File: logo.pdf Graphic file (type pdf)
 <logo.pdf>
- [11
+ [13
 
 
 
@@ -486,12 +508,12 @@ File: logo.pdf Graphic file (type pdf)
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
- [12
+ [14
 
 
 
 
-] [13
+] [15
 
 
 
@@ -503,16 +525,16 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 LaTeX Warning: There were undefined references.
 
 
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 2661 strings out of 493281
- 34217 string characters out of 6145042
- 118390 words of memory out of 5000000
- 6516 multiletter control sequences out of 15000+600000
+ 2684 strings out of 493281
+ 34611 string characters out of 6145042
+ 117426 words of memory out of 5000000
+ 6534 multiletter control sequences out of 15000+600000
  26437 words of font info for 103 fonts, out of 8000000 for 9000
  929 hyphenation exceptions out of 8191
- 32i,15n,32p,798b,493s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 32i,15n,32p,1373b,493s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on master_thesis_v1.dvi (16 pages, 40428 bytes).
+Output written on master_thesis_v1.dvi (18 pages, 49456 bytes).
