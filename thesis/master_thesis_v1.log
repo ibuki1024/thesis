@@ -1,4 +1,4 @@
-This is e-pTeX, Version 3.14159265-p3.8.0-180226-2.6 (utf8.euc) (TeX Live 2018) (preloaded format=platex 2019.4.5)  6 JAN 2021 22:44
+This is e-pTeX, Version 3.14159265-p3.8.0-180226-2.6 (utf8.euc) (TeX Live 2018) (preloaded format=platex 2019.4.5)  7 JAN 2021 20:36
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -359,11 +359,11 @@ LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <14.4> not available
 
 ]
 LaTeX Font Info:    Font shape `JT1/mc/bx/n' in size <12> not available
-(Font)              Font shape `JT1/gt/m/n' tried instead on input line 73.
+(Font)              Font shape `JT1/gt/m/n' tried instead on input line 74.
 LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <12> not available
-(Font)              Font shape `JY1/gt/m/n' tried instead on input line 73.
+(Font)              Font shape `JY1/gt/m/n' tried instead on input line 74.
 
-Overfull \hbox (0.93613pt too wide) in paragraph at lines 74--74
+Overfull \hbox (0.93613pt too wide) in paragraph at lines 75--75
 \OT1/cmr/m/n/10.95 de-notes state, ac-tion set, and $\OML/cmm/m/it/10.95 T\OT1/
 cmr/m/n/10.95 (\OML/cmm/m/it/10.95 s[]\OMS/cmsy/m/n/10.95 j\OML/cmm/m/it/10.95 
 s; a\OT1/cmr/m/n/10.95 )$ ex-press tran-si-tion prob-a-bil-ity. Also, $\OML/cmm
@@ -376,33 +376,45 @@ s; a\OT1/cmr/m/n/10.95 )$ ex-press tran-si-tion prob-a-bil-ity. Also, $\OML/cmm
 ] [2]
 File: event.png Graphic file (type bmp)
 <event.png>
- [3]
-File: model.png Graphic file (type bmp)
-<model.png>
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[4] [5]
-File: control_path.png Graphic file (type bmp)
-<control_path.png>
- [6]
+[3] [4]
+File: model.png Graphic file (type bmp)
+<model.png>
+ [5]
+File: path_1.png Graphic file (type bmp)
+<path_1.png>
 
-LaTeX Warning: Reference `optimality' on page 7 undefined on input line 253.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[6]
+
+LaTeX Warning: Reference `optimality' on page 7 undefined on input line 260.
 
 [7]
+File: data_distribution.png Graphic file (type bmp)
+<data_distribution.png>
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[8]
 
 LaTeX Font Warning: Font shape `JT1/mc/m/it' undefined
-(Font)              using `JT1/mc/m/n' instead on input line 293.
+(Font)              using `JT1/mc/m/n' instead on input line 328.
 
 
 LaTeX Font Warning: Font shape `JY1/mc/m/it' undefined
-(Font)              using `JY1/mc/m/n' instead on input line 293.
+(Font)              using `JY1/mc/m/n' instead on input line 328.
 
+[9]
 
-LaTeX Warning: Citation `polya1945' on page 8 undefined on input line 317.
+LaTeX Warning: Citation `polya1945' on page 10 undefined on input line 352.
 
-[8] [9]
+[10]
 *geometry* verbose mode - [ newgeometry ] result:
 * driver: dvips
 * paper: <default>
@@ -437,7 +449,7 @@ LaTeX Warning: Citation `polya1945' on page 8 undefined on input line 317.
 
 File: logo.pdf Graphic file (type pdf)
 <logo.pdf>
- [10
+ [11
 
 
 
@@ -474,12 +486,12 @@ File: logo.pdf Graphic file (type pdf)
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
- [11
+ [12
 
 
 
 
-] [12
+] [13
 
 
 
@@ -490,14 +502,17 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 LaTeX Warning: There were undefined references.
 
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
  ) 
 Here is how much of TeX's memory you used:
- 2654 strings out of 493281
- 34080 string characters out of 6145042
- 117363 words of memory out of 5000000
- 6511 multiletter control sequences out of 15000+600000
+ 2661 strings out of 493281
+ 34217 string characters out of 6145042
+ 118390 words of memory out of 5000000
+ 6516 multiletter control sequences out of 15000+600000
  26437 words of font info for 103 fonts, out of 8000000 for 9000
  929 hyphenation exceptions out of 8191
  32i,15n,32p,798b,493s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on master_thesis_v1.dvi (15 pages, 36136 bytes).
+Output written on master_thesis_v1.dvi (16 pages, 40428 bytes).

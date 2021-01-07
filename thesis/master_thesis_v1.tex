@@ -69,6 +69,8 @@
 %%% Body %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 
+
+
 \section{Preliminaries}
 \subsection{Background of Deep Reinforcement Learning}
 Consider a malkov decision process $M$ given with tuple $M=\{S,A,T,d_0,r,\gamma\}$. Here, $S,A$ denotes state, action set, and $T(s^{'}|s,a)$ express transition probability. Also, $d_0,r(s,a),\gamma\in[0,1]$ are distribution of initial state, reward, discount factor respectively. \par
@@ -95,7 +97,7 @@ There is an algorithm for achieving \eqref{purpose_of_rl}, called the policy ite
 	\item Policy Evaluation: Find (or approximate) action value function $Q^{\pi}(s,a)$.
 	\item Policy Improvement: Update policy as $\pi(s)=\argmax_aQ^{\pi}(s,a)$.
 \end{enumerate}
-It is known that the optimal policy $\pi^{*}$ can be obtained by repeating the above two steps (Measure Improvement Theorem).
+It is known that the optimal policy $\pi^{*}$ can be obtained by repeating the above two steps (Policy Improvement Theorem).
 
 
 
@@ -136,6 +138,18 @@ Next update law of actor are shown. Because actor is the representation of polic
 	\expect_{s\sim\rho^{\pi}}[\nabla_{\theta}\pi_{\theta}(s)\nabla_{a}Q(s, a|\omega)|_{a=\pi_{\theta}(s)}] \simeq \frac{1}{N}\sum_{s\in E}[\nabla_{\theta}\pi_{\theta}(s)\nabla_{a}Q(s, a|\omega)|_{a=\pi_{\theta}(s)}]. \label{expectation_approximation}
 \end{equation}
 Therefore, the accuracy of the approximation of the policy gradient may be greatly degraded by the accuracy of critic approximation and the distribution of mini-batch.
+
+\subsection{Exploration in DDPG}
+\label{sec:exploration}
+% 探索の必要性
+% 探索ノイズの大小がDDPGにどのような影響を与えるのか
+Reinforcement learning uses empirical data collected by interaction with the environment to improve a policy. An agent needs to take a variety of actions in each state in order to know better actions. This is called "exploration". When the action space is discrete, a exploration method called "$\varepsilon - greedy$" is widely known. \par
+In the case of continuous action space, it is common to collect data with the action determined by adding noise $e$ to the output of the policy function during training, such as
+\begin{equation}
+	a = \pi_{\theta}(s) + e.
+\end{equation}
+(The noise-added policy is called the behavior policy in order to distinguish it from the learning policy.)Intuitively, the larger this noise is, the wider the exploration is expected to be. By increasing the distribution of behavioral data around $a=\pi_{\theta}(s)$, we can expect to improve the accuracy of approximating the gradient of the $Q$-function with respect to $a$. \par
+Then, is it useful to enlarge the exploration noise in all cases? In DDPG, we stored the past empirical data in the replay buffer, and calculated the policy gradient using the data set selected with equal probability from them. Since the expected value of the policy gradient is taken for $s\sim\rho^{\pi_{\theta}}$, the state distribution of the replay buffer should be as close as possible to $\rho^{\pi_{\theta}}$. Adding a large exploration noise may violate this property in some cases. Therefore, it may be disadvantageous to increase the exploration noise. This is considered to be a kind of problem called the "exploration and exploitation dilemma".
 
 
 \section{Problem Formulation}
@@ -181,13 +195,15 @@ The activation function "original" shown in Fig \ref{NN} is defined as $0.99 \ti
 
 
 \section{Consideration}
+% 小さいノイズの結果であることを明示する
+In this section, we study the effectiveness of the reinforcement learning approach to the optimal self-triggered control problem. We conduct numerical experiments and review the results for the cases of linear and nonlinear control systems, respectively. In both cases, the communication interval is allowed to be $0.01 (s) \sim 1.0 (s)$. 
 
 \subsection{Linear Case}
 First, we adopt reinforcement learning to self-triggered control for linear system. The control object is
 \begin{equation}
 	\dot{s} = As + Bu = \begin{bmatrix}-1& 4 \\ 2 & -3\end{bmatrix}s + \begin{bmatrix}2 \\ 4\end{bmatrix}u.
 \end{equation}
-
+Here, the input signal $u$ is limited to $-10 \sim 10$.
 
 \subsubsection{Initial Policy}
 For learning efficiency, we use $\pi_{\textrm{init}}$ such that
@@ -197,6 +213,9 @@ For learning efficiency, we use $\pi_{\textrm{init}}$ such that
 where $K$ is a feedback gain calculated by Linear Quadratic Regulator. This policy stabilize the system (really??).
 
 \subsubsection{Learned Policy}
+
+\subsubsection{Comparison with Naiive Model Based Control}
+
 
 
 
@@ -208,23 +227,25 @@ In this subsection, we investigate whether the self-triggered control law can be
 	\odif{}{t}\begin{pmatrix}\theta \\ \dot{\theta}\end{pmatrix} = 
 		\begin{pmatrix}\dot{\theta} \\ \frac{3g}{2l}\sin{\theta} + \frac{3}{ml^2}a \end{pmatrix} \label{pendulum}.
 \end{equation}
-Therefore, for an inverted pendulum, the state variable $s$ is considered to be $\begin{pmatrix}\theta \\ \dot{\theta}\end{pmatrix}$.
+Therefore, for an inverted pendulum, the state variable $s$ is considered to be $\begin{pmatrix}\theta & \dot{\theta}\end{pmatrix}^{\top}$.
 \par
+As in the linear case, the input signal $u$ is limited to $-10 \sim 10$.
+
 \subsubsection{Initial Policy}
 For learning efficiency, we use $\pi_{\textrm{init}}$ such that
 \begin{equation}
 	\pi_{\textrm{init}} = \begin{bmatrix}-Ks&0.2\end{bmatrix}
 \end{equation}
-where $K$ is a feedback gain calculated by Linear Quadratic Regulator. This policy stabilize the system (really??).
+where $K$ is a feedback gain calculated by Linear Quadratic Regulator. This policy stabilize the system.
 
 \subsubsection{Learned Policy}
-Fig \ref{control_path} shows a control path with learned policy, stating from $s_0 = [3., 3.]$.
+Fig \ref{path_1} shows a control path with learned policy, stating from $s_0 = [3., 3.]$.
 \begin{figure}[h]
 	\centering
- 	\includegraphics[width=12cm]{control_path.png}
- 	\caption{A control path with learned policy $\pi_{\textrm{RL}}$} \label{control_path}
+ 	\includegraphics[width=8cm]{path_1.png}
+ 	\caption{A control path with learned policy $\pi_{\textrm{RL}}$} \label{path_1}
 \end{figure}\\
-The left panel of Figure \ref{control_path} plots the change of angle and communication interval $\tau$ against the control time. The time of the communication is marked with a dot. From this figure, we can see that the communication interval is determined flexibly at each interaction.\par
+Figure \ref{path_1} shows, from top to bottom, the angle of the pendulum $\theta$, the control input $u$, and the boolean representing interaction. From this figure, we can see that the communication interval is determined flexibly at each interaction.\par
 Now, we confirm whether the learned policy $\pi_{\textrm{RL}}$ enlarge the evaluation function $J(\pi)$ compared from the initital policy $\pi_{\textrm{init}}$. Since $J(\pi) = \expect_{s_0}[V^{\pi}(s_0)]$, we generate 500 initial states $s_0$ according to the initial state distribution $d_0$, and average the results of $V^{\pi}(s_0)$. We conduct this approximation of expectation 1000 times. From the result
 \begin{equation}
 	J(\pi_{\textrm{init}}) = 4.23 \pm 0.083,~J(\pi_{\textrm{RL}}) = 37.12 \pm 0.071 \label{compare_policy}, 
@@ -237,7 +258,7 @@ Is the policy $\pi_{\textrm{RL}}$ described in the previous section an optimal? 
 	\nabla_a Q^{\pi_{\textrm{RL}}}(s,a)|_{a=\pi_{\textrm{RL}}(s)} = \bm{0}
 \end{equation}
 should be met. \par
-In order to check whether the policy $\pi_{textrm{RL}}$ satisfies the condition \eqref{optimality}, we want to know $Q^{\pi_{\textrm{RL}}}(s,a)$. Then, we obtain the approximation of value function $V^{\pi_{\textrm{RL}}}(s) = \sum_{i=0}^{N}\gamma^i r(s_i,\pi_{\textrm{RL}}(s_i))$ with $N$ step simulation:
+In order to check whether the policy $\pi_{\textrm{RL}}$ satisfies the condition \eqref{optimality}, we want to know $Q^{\pi_{\textrm{RL}}}(s,a)$. Then, we obtain the approximation of value function $V^{\pi_{\textrm{RL}}}(s) = \sum_{i=0}^{N}\gamma^i r(s_i,\pi_{\textrm{RL}}(s_i))$ with $N$ step simulation:
 \begin{equation}
 	V^{\pi_{\textrm{RL}}}_{\textrm{ap}}(s) = \sum_{i=0}^{N}\gamma^i r(s_i,\pi_{\textrm{RL}}(s_i)).
 \end{equation}
@@ -254,17 +275,45 @@ Now, when we calculate the policy gradient using $Q^{\pi_{\textrm{RL}}}_{\textrm
 which means that the policy $\pi_{\textrm{RL}}$ is not an optimal measure. We will discuss the reason for this.
 
 \subsection{Approximation Accuracy of Critic}
-方策$\pi_{\textrm{RL}}$は, criticネットワーク$Q(s,a|\omega)$に対して
+Since policy $\pi_{\textrm{RL}}$ makes
 \begin{equation}
 	\expect_{s\sim\rho^{\pi_{\textrm{RL}}}}[
-	\nabla_{\theta}\pi_{\textrm{RL}}(s)\nabla_{a}Q(s,a|\omega)|_{a=\pi_{\textrm{RL}}(s)}] = \bm{0} 
+	\nabla_{\theta}\pi_{\textrm{RL}}(s)\nabla_{a}Q(s,a|\omega)|_{a=\pi_{\textrm{RL}}(s)}] \simeq \bm{0}
 \end{equation}
-となったため, 近似勾配に対しては最適な方策であると言える. 従って, criticの近似精度の低さが最適方策を学習できなかった原因であると考えられる. 
+for critic network $Q(s,a|\omega)$, it is a optimal solution to make the approximated gradient be 0. Therefore, the reason why we could not learn the optimal strategy is considered to be the low approximation accuracy of critic. In this experiment, the exploration noise is given as $\sim$, and its scale is small. This leads to a bias in the distribution of the action $a$ in the replay buffer. For example, the distribution of actions experienced in the neighborhood of $s=\begin{bmatrix}0 & 0\end{bmatrix}$ is shown in Figure \ref{data_distribution}.
+\begin{figure}[h]
+	\centering
+ 	\includegraphics[width=8cm]{data_distribution.png}
+ 	\caption{Action distribution in replay buffer around $s=[0~0]$.} \label{data_distribution}
+\end{figure}\\
+Since the approximation accuracy of 
+\begin{equation}
+	\nabla_{a} Q(s,a|\omega)|_{a=\pi_{\theta}(s)}
+\end{equation}
+is crucial for the calculation of the policy gradient, the problem is the lack of data around $a=\pi_{\theta}(s)$ which is represented by the orange dot in Figure \ref{data_distribution}.
 
 
+\subsection{Ingenuity}
+We see that small scale exploration noise leads low accuracy of critic's approximation. However, as we confirmed in section \ref{sec:exploration}, large scale exploration noise cause problem of experience distribution. Here, by using the information of the control target, we consider to devise a exploration method. \par
+The ideal distribution of replay buffer meets following 2 conditions:
+\begin{enumerate} 
+	\item The distribution of state $s$ is similar to discounted distribution $\rho^{\pi}(s)$
+	\item The variance of action $a$ is large for each state $s$.
+\end{enumerate}
+Therefore, we propose a method to control the noise scale inversely proportional to the gradient of the state $s^{\prime}$ of the next step with respect to the change of input $a$. 
+\begin{equation}
+	e \sim \frac{1}{c\|g\|+1} \mathcal{N}(0,1)
+\end{equation}
+where $g = \frac{ds^{\prime}}{da}$, $c$ is a hyper parameter. \par
+As a result of reinforcement learning using this search method, the obtained policy $\pi_{\textrm{MBRL}}$ achieve
+\begin{equation}
+	J(\pi_{\textrm{MBRL}}) = 68.10 \pm 0.018 \label{ingenuity}.
+\end{equation}
 
 
 \section{Conclusion}
+本稿では, 最適セルフトリガー制御に対する強化学習
+
 
 
 %%% Acknowledgments %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
