@@ -118,10 +118,10 @@ It is known that the optimal policy $\pi^{*}$ can be obtained by repeating the a
 \subsection{Algorithms adapted to the settings of state and action space}
 \label{sec:policy_improvement}
 In the case that both the state space and the action space take discrete values, it is easy to obtain
-$\pi(s)=\argmax_aQ^{\pi}(s,a)$, which appeared in the previous section, by storing $Q^{\pi}(s,a)$ in a table.\par
+$\pi(s)=\argmax_aQ^{\pi}(s,a)$ by storing $Q^{\pi}(s,a)$ in a table.\par
 Now, what about the case where the state space is continuous? Since the state $s$ takes a continuous value, it cannot be stored in a table. Therefore, Minh et al.\cite{DQN} took the approach of approximating $Q^{\pi}(s,a)$ by parametrizing it using a neural network. Since the action space is discrete, it is still possible to obtain $\argmax_aQ^{\pi}(s,a)$. \par
-Finally, in the case whrere both state and action space is continuous, the problem is that it is very expensive to obtain $\argmax_aQ^{\pi}(s,a)$. Thus, up to this point, the policy $\pi$ has been determined by the Q-function, but this approach cannot be taken when both spaces are continuous. 
-Therefore, the policy function is often parameterized as $\pi_{\theta}$ and the parameter $\theta$ is updated by gradient ascent. 
+Finally, in the case where both state and action space is continuous, the problem is that it is very expensive to obtain $\argmax_aQ^{\pi}(s,a)$. Thus, up to this point, the policy $\pi$ has been determined by the Q-function, but this approach cannot be taken when both spaces are continuous. 
+Therefore, the policy function is often parameterized as $\pi_{\theta}$ and the parameter $\theta$ is updated by gradient mothod. 
 
 \subsection{Deterministic Policy Gradient Method}
 Silver et al.\cite{DPG} finds the gradient for the evaluation function $J(\pi_{\theta})$, even if the policy $\pi(s)$ is defined as deterministic policy. This gradient is known as deteministic policy gradient(DPG), and it is calculate as following:
@@ -139,8 +139,11 @@ DDPG uses mini-batch learning. First, update idea of critic is shown. The purpos
 \begin{equation}
 	\textrm{TD} = Q(s,a|\omega) - \{r(s,a)+\gamma Q(s,\pi(s)|\omega)\}
 \end{equation}
-Since it is difficult to optimize for whole $(s,a)$ at once, DDPG uses the mean squared error for the mini-batch $E$ as the loss function and reduces it. \par
-Now, the above method of updating critic is supervised learning itself. Therefore, the data in the mini-batch must be i.i.d.. If the mini-batch $E$ uses the data of the last $N$ steps experienced by the agent, they are no longer independent. Hence, the agent stores the empirical data in a storage, called replay buffer, and randomly selects $N$ data from it to make a mini-batch to increase the variance of the mini-batch.\par
+Since it is difficult to optimize for whole $(s,a)$ at once, DDPG uses the mean squared error for the mini-batch $E$ as the loss function and reduces it. 
+\begin{equation}
+	Loss = \frac{1}{N}\sum_{s\in E} \textrm{TD}^2
+\end{equation}\par
+Now, the above method of updating critic is supervised learning itself. Therefore, the data in the mini-batch must be i.i.d.. If the mini-batch $E$ uses the data of the last $N$ steps experienced by the agent, they are no longer independent. Hence, the agent stores the empirical data in a storage, called replay buffer, and randomly selects $N$ data from it to make a mini-batch to increase the variance of it.\par
 Next update law of actor are shown. Because actor is the representation of policy function $\pi(s)$, policy gradient is used for its update. However, since correct $Q$-function as in equation \eqref{true_pg} cannot be used in DDPG, approximated policy gradient
 \begin{equation}
 	\expect_{s\sim\rho^{\pi}}[\nabla_{\theta}\pi_{\theta}(s)\nabla_{a}Q(s, a|\omega)|_{a=\pi_{\theta}(s)}] \simeq \nabla_{\theta}J(\pi_{\theta}) 
@@ -155,28 +158,28 @@ Therefore, the accuracy of the approximation of the policy gradient may be great
 \label{sec:exploration}
 % 探索の必要性
 % 探索ノイズの大小がDDPGにどのような影響を与えるのか
-Reinforcement learning uses empirical data collected by interaction with the environment to improve a policy. An agent needs to take a variety of actions in each state in order to know better actions. This is called "exploration". When the action space is discrete, a exploration method called "$\varepsilon - greedy$" is widely known. \par
+Reinforcement learning uses empirical data collected by interaction with the environment to improve a policy. An agent needs to take a variety of actions in each state in order to know better actions. This is called "exploration". When the action space is discrete, a exploration method called "$\varepsilon$ - greedy" is widely known. \par
 In the case of continuous action space, it is common to collect data with the action determined by adding noise $e$ to the output of the policy function during training, such as
 \begin{equation}
 	a = \pi_{\theta}(s) + e.
 \end{equation}
-(The noise-added policy is called the behavior policy in order to distinguish it from the learning policy.)Intuitively, the larger this noise is, the wider the exploration is expected to be. By increasing the distribution of behavioral data around $a=\pi_{\theta}(s)$, we can expect to improve the accuracy of approximating the gradient of the $Q$-function with respect to $a$. \par
-Then, is it useful to enlarge the exploration noise in all cases? In DDPG, we stored the past empirical data in the replay buffer, and calculated the policy gradient using the data set selected with equal probability from them. Since the expected value of the policy gradient is taken for $s\sim\rho^{\pi_{\theta}}$, the state distribution of the replay buffer should be as close as possible to $\rho^{\pi_{\theta}}$. Adding a large exploration noise may violate this property in some cases. Therefore, it may be disadvantageous to increase the exploration noise. This is considered to be a kind of problem called the "exploration and exploitation dilemma".
+(The noise-added policy is called the behavior policy in order to distinguish it from the learning policy.) Intuitively, the larger this noise is, the wider the exploration is expected to be. By increasing the distribution of behavioral data around $a=\pi_{\theta}(s)$, we can expect to improve the accuracy of approximating the gradient of the $Q$-function with respect to $a$. \par
+Then, is it useful to enlarge the exploration noise in all cases? In DDPG, we stored the past empirical data in the replay buffer, and calculated the policy gradient using the data set selected with equal probability from them. Since the expected value of the policy gradient is taken for $s\sim\rho^{\pi_{\theta}}$, the state distribution of the replay buffer should be as close as possible to $\rho^{\pi_{\theta}}$. Adding a large exploration noise may violate this property in some cases. Therefore, it may be disadvantageous to enlarge the exploration noise. This is considered to be a kind of problem called the "exploration and exploitation dilemma".
 
 
 \section{Problem Formulation}
 \subsection{Self-Triggered Control}
-We consider control system like Fig. \ref{image}.
+We consider control system like Fig \ref{image}.
 \begin{figure}[h]
 	\centering
  	\includegraphics[width=10cm]{event.png}
  	\caption{control system} \label{image}
-\end{figure}
-Here, the control target is a continuous-time system as in Equation \eqref{continuous_system}
+\end{figure}\\
+Here, the control target is a continuous-time system as Equation \eqref{continuous_system}
 \begin{equation}
 	\dot{s} = h(s,u) \label{continuous_system}
 \end{equation}\par
-Now, we consider a feedback control for system \eqref{continuous_system}. In this paper, we call the observation of the state variable $s$ and the sending of the input signal to the actuator as "interaction". In the self-triggered control, the agent does not make interaction continuously, but after a communication interval $\tau$ seconds determined by the agent itself. In order to express it mathematically, we assume that the agent's control law $\pi(s)$ is a vector-valued function consisting of two elements, where the first element represents the input $u$ sent to the actuator and the second element represents the interval $\tau (sec)$. The input $u$ sent in the previous interaction is added until the time of the next interaction (ZOH control).
+Now, we consider a feedback control for system \eqref{continuous_system}. In this paper, we call the observation of the state variable $s$ and the sending of the input signal to the actuator as "interaction". In the self-triggered control, the agent does not make interaction continuously, but after a communication interval $\tau$ seconds determined by the agent itself. In order to express it mathematically, we assume that the agent's control law $\pi$ is a vector-valued function consisting of two elements, where the first element represents the input $u$ sent to the actuator, and the second element represents the interval $\tau (sec)$. The input $u$ sent in the previous interaction is added until the time of the next interaction (ZOH control).
 
 \subsection{Optimal Self-Triggered Control}
 The optimal self-triggered control law $\pi^{*}$ is defined as follows
@@ -184,7 +187,7 @@ The optimal self-triggered control law $\pi^{*}$ is defined as follows
 	\pi^{*} &= \argmax_{\pi}J(\pi) \label{optimal_policy}\\
 	J(\pi) &= \expect_{s_0\in d_0}[V^{\pi}(s_0)] \\
 	V^{\pi}(s_0) &= \sum_{i=0}^{\infty} \gamma^i r^{\pi}_i \label{value} \\
-	r^{\pi}_i &= -\int_{T_i}^{T_{i+1}}s(t)^{\top}Qs(t)\textrm{d}t +\tau_ia_i^{\top}Ra_i + \lambda \tau_i, ~T_i = \sum_{l=0}^{i} \tau_l \label{reward}
+	r^{\pi}_i &= -\int_{T_i}^{T_{i+1}}s(t)^{\top}Qs(t)\textrm{d}t - \tau_ia_i^{\top}Ra_i + \lambda \tau_i, ~T_i = \sum_{l=0}^{i} \tau_l \label{reward}
 \end{align}
 where $i$ denote the number of interactions, and $a_i$ and $\tau_i$ be the outputs of the measures $\pi$ for the $i$th interaction, respectively. \par
 
@@ -192,7 +195,8 @@ where $i$ denote the number of interactions, and $a_i$ and $\tau_i$ be the outpu
 In reinforcement learning, the agent is expected to perform interactions step by step. The self-triggered control problem considered in this paper, where the control target is given as a continuous-time system, satisfies the assumption of reinforcement learning by considering the communication with the actuator as one step.\par
 
 \subsection{Model Settings}
-In the self-triggered control, the agent needs to decide  the input signal $u$ and the interval $\tau$ at each step. In this paper, the control law is given as a state feedback. Therefore, the policy function is given as follows:
+In the self-triggered control, the agent needs to decide the input signal $u$ and the interval $\tau$ at each step. Thus, the action $a$ in reinforcement learning corresponds to $\begin{bmatrix}u & \tau \end{bmatrix}^{\top}$. \par
+Now, in this research, the control law is given as a state feedback. Therefore, the policy function is given as follows:
 \begin{equation}
 	\pi(s) = \begin{bmatrix}u(s) & \tau(s)\end{bmatrix}^{\top}
 \end{equation}\par
@@ -202,7 +206,7 @@ We use DDPG as reinforcement learning algorithm. As described in section 2, acto
  	\includegraphics[width=10cm]{model.png}
  	\caption{Agent Model} \label{NN}
 \end{figure}\\
-The activation function "original" shown in Fig \ref{NN} is defined as $0.99 \times \textrm{sigmoid} + 0.01$ to meet upper and lower limits of interval.
+The activation function "original" shown in Fig \ref{NN} is defined as $0.99 \times \textrm{sigmoid} + 0.01$ to meet upper and lower limits of interval described in the next section.\par
 
 
 \section{Consideration}
@@ -217,34 +221,34 @@ First, we adopt reinforcement learning to self-triggered control for linear syst
 Here, the input signal $u$ is limited to $-10 \sim 10$.
 
 \subsubsection{Initial Policy}
-For learning efficiency, we use $\pi_{\textrm{init}}$ such that
+For learning efficiency, we use $\pi^l_{\textrm{init}}$ such that
 \begin{equation}
-	\pi_{\textrm{init}} = \begin{bmatrix}-Ks&0.01\end{bmatrix}
+	\pi^l_{\textrm{init}} = \begin{bmatrix}-Ks&0.01\end{bmatrix}
 \end{equation}
 where $K$ is a feedback gain calculated by Linear Quadratic Regulator. This policy stabilize the system.
 
 \subsubsection{Learned Policy}
-Fig \ref{path_l} shows a control path with learned policy, stating from $s_0 = [3., 3.]$.
+Fig \ref{path_l} shows a control path with learned policy$\pi^l_{\textrm{RL}}$, stating from $s_0 = [3., 3.]$.
 \begin{figure}[h]
 	\centering
  	\includegraphics[width=8cm]{path_l.png}
- 	\caption{A control path with learned policy $\pi_{\textrm{RL}}$} \label{path_l}
+ 	\caption{A control path with learned policy $\pi^l_{\textrm{RL}}$} \label{path_l}
 \end{figure}\\
-Figure \ref{path_l} shows, from top to bottom, the angle of the pendulum $\theta$, the control input $u$, and the boolean representing interaction. From this figure, we can see that the communication interval is determined flexibly at each interaction.\par
-Now, we confirm whether the learned policy $\pi_{\textrm{RL}}$ enlarge the evaluation function $J(\pi)$ compared from the initital policy $\pi_{\textrm{init}}$. Since $J(\pi) = \expect_{s_0}[V^{\pi}(s_0)]$, we generate 500 initial states $s_0$ according to the initial state distribution $d_0$, and average the results of $V^{\pi}(s_0)$. We conduct this approximation of expectation 1000 times. From the result
+Figure \ref{path_l} shows, from top to bottom, the L2 - norm of state $s$, the control input $u$, and the boolean representing interaction. From this figure, we can see that the communication interval is determined flexibly at each interaction.\par
+Now, we confirm whether the learned policy $\pi^l_{\textrm{RL}}$ enlarge the evaluation function $J(\pi)$ compared from the initital policy $\pi^l_{\textrm{init}}$. Since $J(\pi) = \expect_{s_0}[V^{\pi}(s_0)]$, we generate 500 initial states $s_0$ according to the initial state distribution $d_0$, and average the results of $V^{\pi}(s_0)$. We conduct this approximation of expectation 1000 times. From the result
 \unc{
 \begin{equation}
-	J(\pi_{\textrm{init}}) = 4.23 \pm 0.083,~J(\pi_{\textrm{RL}}) = 37.12 \pm 0.071 \label{compare_policy}, 
+	J(\pi^l_{\textrm{init}}) = , ~J(\pi^l_{\textrm{RL}}) = , 
 \end{equation}
 }
-we can confirm $J(\pi_{\textrm{init}}) < J(\pi_{\textrm{RL}})$. It can be concluded that the policy has been improved.
+we can confirm $J(\pi^l_{\textrm{init}}) < J(\pi^l_{\textrm{RL}})$. It can be concluded that the policy has been improved.
 
 \subsubsection{Comparison with Naiive Model Based Control}
-In this section, we compare the control performance with that of a naively designed model-based self-triggered control law $\pi_{\textrm{MB}}$. The control law $\pi_{\textrm{MB}}$ is defined as the solution of 
+In this section, we compare the control performance with that of a naively designed model-based self-triggered control law $\pi^l_{\textrm{MB}}$. The control law $\pi^l_{\textrm{MB}}$ is defined as the solution of 
 \begin{equation}
-	\pi_{\textrm{MB}}(s) = \argmin_{u,\tau} \left\{\int_{0}^{\tau} s(t)^{\top}s(t)\textrm{d}t + u^2 - \lambda\tau + V_{\textrm{LQR}}(s^{\prime}(s,u,\tau))\right\}
+	\pi^l_{\textrm{MB}}(s) = \argmin_{u,\tau} \left\{\int_{0}^{\tau} s(t)^{\top}s(t)\textrm{d}t + u^2 - \lambda\tau + V_{\textrm{LQR}}(s^{\prime}(s,u,\tau))\right\}
 \end{equation}
-where $s(0) = s$. The control performance of $\pi_{\textrm{MB}}$ is 
+where $s(0) = s$. The control performance of $\pi^l_{\textrm{MB}}$ is 
 \unc{
 \begin{equation}
 	write~me
@@ -264,7 +268,7 @@ Therefore, for an inverted pendulum, the state variable $s$ is considered to be 
 As in the linear case, the input signal $u$ is limited to $-10 \sim 10$.
 
 \subsubsection{Initial Policy}
-For learning efficiency, we use $\pi_{\textrm{init}}$ such that
+The initial policy $\pi_{\textrm{init}}$ used in this case is
 \begin{equation}
 	\pi_{\textrm{init}} = \begin{bmatrix}-Ks&0.2\end{bmatrix}
 \end{equation}
@@ -277,17 +281,18 @@ Fig \ref{path_1} shows a control path with learned policy, stating from $s_0 = [
  	\includegraphics[width=8cm]{path_1.png}
  	\caption{A control path with learned policy $\pi_{\textrm{RL}}$} \label{path_1}
 \end{figure}\\
-The content of Fig \ref{path_1} is same as Fig \ref{path_l}.
-Now, we confirm whether the learned policy $\pi_{\textrm{RL}}$ enlarge the evaluation function $J(\pi)$ compared from the initital policy $\pi_{\textrm{init}}$.  As in linear case, we approximate $J(\pi) = \expect_{s_0}[V^{\pi}(s_0)]$ in the same way. From the result
+Figure \ref{path_1} shows, from top to bottom, the angle of the pendulum $\theta$, the control input $u$, and the boolean representing interaction. Similarly to the linear case, Figure \ref{path_1} shows that the agent decides the communication interval flexibly.\par
+Now let's compare $J(\pi_{\textrm{RL}})$ and $J(\pi_{\textrm{init}})$. As in linear case, we approximate $J(\pi) = \expect_{s_0}[V^{\pi}(s_0)]$ in the same way. The result is
 \begin{equation}
-	J(\pi_{\textrm{init}}) = 4.23 \pm 0.083,~J(\pi_{\textrm{RL}}) = 37.12 \pm 0.071 \label{compare_policy}, 
+	J(\pi_{\textrm{init}}) = 4.23 \pm 0.083,~J(\pi_{\textrm{RL}}) = 37.12 \pm 0.071 \label{compare_policy}.
 \end{equation}
-we can confirm $J(\pi_{\textrm{init}}) < J(\pi_{\textrm{RL}})$. It can be concluded that the policy has been improved.
+Since $J(\pi_{\textrm{init}}) < J(\pi_{\textrm{RL}})$, we can conclude that the policy has been improved in the non-linear case as well.
 
 \subsection{Optimality}
-Is the policy $\pi_{\textrm{RL}}$ described in the previous section an optimal? If it is an optimal solution, the policy gradient must be $\bm{0}$. Therefore from equation \eqref{true_pg}, a condition
+Is the policy $\pi_{\textrm{RL}}$ described in the last section an optimal? If it is an optimal solution, the policy gradient must be $\bm{0}$. Therefore from equation \eqref{true_pg}, a condition
 \begin{equation}
-	\nabla_a Q^{\pi_{\textrm{RL}}}(s,a)|_{a=\pi_{\textrm{RL}}(s)} = \bm{0}
+	\expect_{s\sim\rho^{\pi_{\textrm{RL}}}}[
+	\nabla_{\theta}\pi_{\textrm{RL}}(s)\nabla_{a}Q^{\pi_{\textrm{RL}}}(s, a)|_{a=\pi_{\textrm{RL}}(s)}] = \bm{0} \label{optimality}
 \end{equation}
 should be met. \par
 In order to check whether the policy $\pi_{\textrm{RL}}$ satisfies the condition \eqref{optimality}, we want to know $Q^{\pi_{\textrm{RL}}}(s,a)$. Then, we obtain the approximation of value function $V^{\pi_{\textrm{RL}}}(s) = \sum_{i=0}^{N}\gamma^i r(s_i,\pi_{\textrm{RL}}(s_i))$ with $N$ step simulation:
@@ -303,10 +308,10 @@ Now, when we calculate the policy gradient using $Q^{\pi_{\textrm{RL}}}_{\textrm
 \unc{
 \begin{equation}
 	\expect_{s\sim\rho^{\pi_{\textrm{RL}}}}[
-	\nabla_{\theta}\pi_{\textrm{RL}}(s)\nabla_{a}Q^{\pi_{\textrm{RL}}}(s, a)|_{a=\pi_{\textrm{RL}}(s)}] \neq \bm{0}, 
+	\nabla_{\theta}\pi_{\textrm{RL}}(s)\nabla_{a}Q^{\pi_{\textrm{RL}}}_{\textrm{ap}}(s, a)|_{a=\pi_{\textrm{RL}}(s)}] \neq \bm{0}, 
 \end{equation}
 }
-which means that the policy $\pi_{\textrm{RL}}$ is not an optimal measure. We will discuss the reason for this.
+which means that the policy $\pi_{\textrm{RL}}$ is not an optimal policy. We will discuss the reason for this.
 
 \subsection{Approximation Accuracy of Critic}
 Since policy $\pi_{\textrm{RL}}$ makes
@@ -315,8 +320,7 @@ Since policy $\pi_{\textrm{RL}}$ makes
 	\expect_{s\sim\rho^{\pi_{\textrm{RL}}}}[
 	\nabla_{\theta}\pi_{\textrm{RL}}(s)\nabla_{a}Q(s,a|\omega)|_{a=\pi_{\textrm{RL}}(s)}] \simeq \bm{0}
 \end{equation}
-}
-for critic network $Q(s,a|\omega)$, it is a optimal solution to make the approximated gradient be 0. Therefore, the reason why we could not learn the optimal strategy is considered to be the low approximation accuracy of critic. In this experiment, the exploration noise is given as $\sim$, and its scale is small. This leads to a bias in the distribution of the action $a$ in the replay buffer. For example, the distribution of actions experienced in the neighborhood of $s=\begin{bmatrix}0 & 0\end{bmatrix}$ is shown in Figure \ref{data_distribution}.
+}for critic network $Q(s,a|\omega)$, it is a solution to make the approximated gradient be 0. Therefore, the reason why we could not learn the optimal policy is considered to be the low approximation accuracy of critic. In this experiment, the exploration noise is given as small noise. This leads to a bias in the distribution of the action $a$ in the replay buffer. For example, the distribution of actions experienced in the neighborhood of $s=\begin{bmatrix}0 & 0\end{bmatrix}$ is shown in Figure \ref{data_distribution}.
 \begin{figure}[h]
 	\centering
  	\includegraphics[width=8cm]{data_distribution.png}
@@ -337,15 +341,18 @@ Therefore, we propose a method to control the noise scale inversely proportional
 	e \sim \frac{1}{c\|g\|+1} \mathcal{N}(0,1)
 \end{equation}
 where $g = \frac{ds^{\prime}}{da}$, $c$ is a hyper parameter. \par
-As a result of reinforcement learning using this search method, the obtained policy $\pi_{\textrm{MBRL}}$ achieve
+However, in the case of a non-linear system, it is difficult to compute the gradient of the next state $s^{\prime}$, so we will compute the gradient for a linearization of the system around the origin state.\par
+As a result of reinforcement learning for inverted pendulum using this exploration method, the obtained policy $\pi_{\textrm{MBRL}}$ achieve
 \begin{equation}
 	J(\pi_{\textrm{MBRL}}) = 68.10 \pm 0.018 \label{ingenuity}.
 \end{equation}
+From equation \eqref{compare_policy} and \eqref{ingenuity}, it is shown that learning had conducted better than that with small exploration noise.
+\par
 
 
 \section{Conclusion}
-In this paper, a method for obtaining the state feedback control law is proposed. In particular, it is confirmed by numerical examples that the control law obtained by our method outperforms the control law designed by a naive model-based design. \par 
-Furthermore, we also tackle the self-triggered control of nonlinear systems, which has not been considered in previous studies, and successfully obtain useful control laws. 
+In this paper, a method for obtaining the state feedback control law is proposed. In particular, it is confirmed by numerical examples that the control law obtained by our method outperforms the control law designed by a naive model-based way. \par 
+Furthermore, we also tackle the self-triggered control for nonlinear systems, which has not been considered in previous studies, and successfully obtain useful control laws. 
 
 
 
