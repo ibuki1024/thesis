@@ -1,0 +1,592 @@
+%%% Example for master's thesis (in English)
+\documentclass[english, dvipdfmx]{ampmt}             % pdflatex
+%% \documentclass[dvipdfmx,english]{ampmt} % dvipdfmx
+
+%%% Class options:
+%%% chapter:   \chapter command is available (use report.cls).
+%%% Options for article or report are also accepted.
+
+%%% Title %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title[Deep Reinforcement Learning for Self-Triggered Control]
+      {Deep Reinforcement Learning for Self-Triggered Control}
+      % [title for spine (option)]{title}
+%%% Supervisors %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\supervisors{Yoshito OHTA}{Professor}             % First supervisor  {name}{title}
+            {Kenji KASHIMA}{Assistant Professor} % Second supervisor {name}{title}
+            {}{}                               % Third supervisor  {name}{title}
+%%% Author %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\author{Ibuki TAKEUCHI}
+%%% Submission date %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\submissiondate{2021}{February}   % {year}{month}
+%%% Width of a spine %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setlength{\wdspine}{15mm}
+%%% Number of output spines %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\numberofspines{1}
+%%% Abstract %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\abstract{%
+  In this thesis, we construct the mathematical models of students who write
+  the master's thesis and develop efficient algorithms for writing the master's
+  thesis based on the models.
+  We show that the proposed algorithms generate the thesis 65536 times
+  more efficiently than writing by oneself.
+}
+%%% Packages and definitions of your own macros %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\rme}{\mathrm{e}}
+%\usepackage[top=20truemm,bottom=20truemm,left=25truemm,right=25truemm]{geometry}
+\usepackage{amsmath,ascmac,url,amsfonts,bm,here,algorithmic,algorithm,amsthm,color}
+\newcommand{\unc}[1]{\textcolor{red}{#1}} %unconfirmed data
+\newcommand{\argmax}{\mathop{\rm argmax}\limits}
+\newcommand{\argmin}{\mathop{\rm argmin}\limits} 
+\newcommand{\expect}{\mathbb{E}} 
+\newcommand{\trans}[1]{#1^{\top}}
+\newcommand{\pdif}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\odif}[2]{\frac{\rm{d}#1}{\rm{d}#2}}
+\newtheorem{th.}{Theorem}
+\renewcommand\proofname{\bf Proof}
+
+
+%%% Control of output %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% If you don't want to output body text, activate the next line.
+%% \outputbodyfalse
+
+%%% If you don't want to output covers at the end of PDF, activate the next line.
+%% \outputcoverfalse
+
+%%% If you don't want to output abstract for submission at the end of PDF,
+%%% activate the next line.
+%% \outputabstractforsubmissionfalse
+
+%%% If you want to change the layout, use \geometry command provided by
+%%% the geometry package.
+%% \geometry{hmargin=3cm,vmargin=2cm}
+
+\begin{document}
+\ifoutputbody
+%%% Inside cover, abstract and table of contents %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\makeinsidecover                % Inside cover
+\makeabstract                   % Abstract
+\maketoc                        % Table of contents
+\setcounter{page}{1}
+%%% Body %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+ In many control applications, controllers are nowadays implemented using communication networks in which the control task has to share the communication resources with other tasks. Despite the fact that resources can be scarce, controllers are typically still implemented in a time-triggered fashion, in which control tasks are executed periodically. This design choice often leads to over-utilization of the available communication resources, and/or causes a limited lifetime of battery-powered devices, as it might not be necessary to execute the control task every period to guarantee the desired closed-loop performance. \par
+Also in the area of "sparse control" (Gallieri \& Maciejowski, 2012), in which it is desirable to limit the changes in certain actuator signals while still realizing specific control objectives, periodic execution of control tasks may not be optimal either. In both networked control systems with scarce communication resources and sparse control applications arises the fundamental problem of determining optimal sampling and communication strategies, where optimality needs to reflect both implementation cost (related to the number of communications and/or actuator changes) as well as control performance. It is expected that the solution to this problem results in control strategies that abandon the periodic time-triggered control paradigm. \par
+Two approaches that abandon the periodic communication pattern are event-triggered control (ETC), see, e.g., Arzen (1999), Astrom and Bernhardsson (1999) and Donkers and Heemels (2012), Heemels, Sandee, and van den Bosch (2008), Heemels et al. (1999), Henningsson, Johannesson, and Cervin (2008), Lunze and Lehmann (2010), Tabuada (2007) and Wang and Lemmon (2009), and self-triggered control (STC), see, e.g., Almeida, Silvestre, and Pascoal (2010, 2011), Anta and Tabuada (2010), Donkers, Tabuada, and Heemels (2012), Mazo, Anta, and Tabuada (2010), Velasco, Fuertes, and Marti (2003) and Wang and Lemmon (2009). Although ETC is effective in the reduction of communication or actuator movements, it was originally proposed for different reasons, including the reduction of the use of computational resources and dealing with the event-based nature of the plants to be controlled. In ETC and STC, the control law consists of two elements being a feedback controller that computes the control input, and a triggering mechanism that determines when the control input has to be updated. The difference between ETC and STC is that in the former the triggering consists of verifying a specific condition continuously and when it becomes true, the control task is triggered, while in the latter at an update time the next update time is pre-computed. \par
+At present ETC and STC form popular research areas. However, two important issues have only received marginal attention: (i) the co-design of both the feedback law and the triggering mechanism, and (ii) the provision of performance guarantees (by design). To elaborate on (i), note that current design methods for ETC and STC are mostly emulation-based approaches, by which we mean that the feedback controller is designed without considering the scarcity in the system’s resources. The triggering mechanism is only designed in a subsequent phase, where the controller has already been fixed. Since the feedback controller is designed before the triggering mechanism, it is difficult, if not impossible, to obtain an optimal design of the combined feedback controller and triggering mechanism in the sense that the minimum number of control executions is achieved while guaranteeing closed-loop stability and a desired level of performance. \par
+By the way, artificial intelligence is nowadays used in various situations, notably in automatic driving technology, and the development of research on the subject of artificial intelligence is remarkable. One of the concepts to realize artificial intelligence is reinforcement learning. Reinforcement learning is an algorithm that learns behaviors that maximize the long-term benefits by repeated trial and error. In addition, although not mathematically proven, reinforcement learning has been used to obtain meaningful results for nonlinear systems. In this paper, we investigate the usefulness of reinforcement learning as a method to realize the self-triggered control law. \par
+The two main contributions of this research are
+\begin{itemize}
+	\item To obtain a state feedback control law that outperforms the control performance of a naively designed simulation-based self-triggered control law.
+	\item To confirm the usefulness of reinforcement learning for self-triggered control not only for linear systems but also for non-linear systems.
+\end{itemize}
+
+
+
+
+\section{Preliminaries}
+\subsection{Background of Deep Reinforcement Learning}
+Consider a malkov decision process $M$ given with tuple $M=\{S,A,T,d_0,r,\gamma\}$. Here, $S,A$ denotes state, action set, and $T(s^{'}|s,a)$ express transition probability. Also, $d_0,r(s,a),\gamma\in[0,1]$ are distribution of initial state, reward, discount factor respectively. \par
+Now, the purpose of reinforcement learning is to find a policy such that
+\begin{equation}
+	\pi^{*}=\argmax_{\pi}J(\pi) \label{purpose_of_rl}
+\end{equation} 
+where evaluation function $J(\pi)$ and (state) value function $V^{\pi}(s)$ is given as following:
+\begin{align}
+	V^{\pi}(s) &= \sum_{t=0}^{\infty}\gamma^tr(s_t, a_t)|_{a_t=\pi(s_t)}, s_0 = s\\
+	J(\pi) &= \expect_{s_0\sim d_0}[V^{\pi}(s_0)]
+\end{align}
+Here, we define $Q$ function, which is useful tool for analyzing reinforcement learning. $Q$ function is given as 
+\begin{align}
+	Q^{\pi}(s,a) &= r(s, a) + \gamma\sum_{t=1}^{\infty}\gamma^tr(s_t, a_t)|_{a_t=\pi(s_t)} \nonumber\\
+			    &= r(s, a) + \gamma V^{\pi}(s^{\prime}). \label{Q_func}
+\end{align}
+As showed in \eqref{Q_func}, $Q$ function express the value when agent select action $a$ freely and choose action according to the policy $\pi$ from next step. Thus, the $Q$-function is also known as the action value function.
+
+
+\subsection{Policy Iteration}
+There is an algorithm for achieving \eqref{purpose_of_rl}, called the policy iteration method. It consists in repeating the following two steps.
+\begin{enumerate}
+	\item Policy Evaluation: Find (or approximate) action value function $Q^{\pi}(s,a)$.
+	\item Policy Improvement: Update policy as $\pi(s)=\argmax_aQ^{\pi}(s,a)$.
+\end{enumerate}
+It is known that the optimal policy $\pi^{*}$ can be obtained by repeating the above two steps (Policy Improvement Theorem).
+
+
+
+
+
+\subsection{Algorithms adapted to the settings of state and action space}
+\label{sec:policy_improvement}
+In the case that both the state space and the action space take discrete values, it is easy to obtain
+$\pi(s)=\argmax_aQ^{\pi}(s,a)$ by storing $Q^{\pi}(s,a)$ in a table.\par
+Now, what about the case where the state space is continuous? Since the state $s$ takes a continuous value, it cannot be stored in a table. Therefore, Minh et al.\cite{DQN} took the approach of approximating $Q^{\pi}(s,a)$ by parametrizing it using a neural network. Since the action space is discrete, it is still possible to obtain $\argmax_aQ^{\pi}(s,a)$. \par
+Finally, in the case where both state and action space is continuous, the problem is that it is very expensive to obtain $\argmax_aQ^{\pi}(s,a)$. Thus, up to this point, the policy $\pi$ has been determined by the Q-function, but this approach cannot be taken when both spaces are continuous. 
+Therefore, the policy function is often parameterized as $\pi_{\theta}$ and the parameter $\theta$ is updated by gradient mothod. 
+
+\subsection{Deterministic Policy Gradient Method}
+Silver et al.\cite{DPG} finds the gradient for the evaluation function $J(\pi_{\theta})$, even if the policy $\pi(s)$ is defined as deterministic policy. This gradient is known as deteministic policy gradient(DPG), and it is calculate as following theorem.
+\begin{th.}[Deterministic Policy Gradient Theorem]
+The gradient for evaluation function $\nabla_{\theta}J(\pi_{\theta})$ is exist and calculated as, 
+\begin{align}
+	\nabla_{\theta}J(\pi_{\theta}) &= \expect_{s\sim\rho^{\pi_{\theta}}}[
+	\nabla_{\theta}\pi_{\theta}(s)\nabla_{a}Q^{\pi_{\theta}}(s, a)|_{a=\pi_{\theta}(s)}] \label{true_pg} 
+\end{align}
+where, 
+\begin{equation}
+	\rho^{\pi_{\theta}}(s) = \int_{S}\sum_{t=0}^{\infty}\gamma^td_0(s_0)\textrm{Pr}(s_0\to s, t,  \pi_{\theta})\textrm{d}s_0
+\end{equation}
+is discounted distribution.
+\end{th.}
+\begin{proof}
+First, we consider the gradient for $V^{\pi_{\theta}}(s)$.
+\begin{align}
+	& \nabla_{\theta}V^{\pi_{\theta}}(s) \nonumber \\ 
+	&= \nabla_{\theta}Q^{\pi_{\theta}}(s, \pi_{\theta}(s))\nonumber\\
+	&= \nabla_{\theta}[r(s,\pi_{\theta}(s))+\gamma\int_{S}Pr(s\to s^{\prime}, 1, \pi_{\theta})V^{\pi_{\theta}}(s^{\prime})ds^{\prime}] \nonumber\\
+	&= \nabla_{\theta}\pi_{\theta}(s)\nabla_{a}r(s,a)|_{a=\pi_{\theta}(s)} \nonumber \\
+	&\hspace{1ex}+\gamma\int_{S}(\nabla_{\theta}\pi_{\theta}(s)\nabla_aPr(s\to s^{\prime},1,a)|_{a=\pi(s)}V^{\pi_{\theta}(s^{\prime})}\nonumber\\
+	&\hspace{1ex}+Pr(s\to s^{\prime}, 1, \pi_{\theta})\nabla_{\theta}V^{\pi_{\theta}}(s^{\prime}))ds^{\prime}\nonumber\\
+	&= \nabla_{\theta}\pi_{\theta}(s)\nabla_a[r(s,a)+\gamma\int_{S}Pr(s\to s^{\prime}, 1, \pi_{\theta})V^{\pi_{\theta}}(s^{\prime})]_{a=\pi_{\theta(s)}}ds^{\prime} \nonumber \\
+	&\hspace{1ex}+\gamma\int_{S}Pr(s\to s^{\prime}, 1, \pi_{\theta})\nabla_{\theta}V^{\pi_{\theta}}(s^{\prime})ds^{\prime}\nonumber\\
+	&= \nabla_{\theta}\pi_{\theta}(s)\nabla_aQ^{\pi_{\theta}}(s,a)|_{a=\pi_{\theta}(s)} + \gamma\int_{S}Pr(s\to s^{\prime}, 1, \pi_{\theta})\nabla_{\theta}V^{\pi_{\theta}}(s^{\prime})ds^{\prime}
+\end{align}
+By using this relation recursively, we have,
+\begin{align}
+	\nabla_{\theta}V^{\pi_{\theta}}(s) &= \sum_{i=0}^{\infty}\int_{S}\cdots\int_{S}Pr(s\to s^{\prime},1,\pi_{\theta})Pr(s^{\prime}\to s^{\prime\prime},1,\pi_{\theta})\cdots\nonumber\\
+	&\hspace{10ex}\gamma^i\nabla_{\theta}\pi_{\theta}(s^{\prime\cdots\prime})\nabla_aQ^{\pi_{\theta}}(s^{\prime\cdots\prime},a)|_{a=\pi_{\theta}(s^{\prime\cdots\prime})}ds^{\prime\cdots\prime}\ldots ds^{\prime}\nonumber\\
+	&= \sum_{i=0}^{\infty} \gamma^i\int_{S}Pr(s\to s^{\prime}, i, \pi_{\theta})\nabla_{\theta}\pi_{\theta}(s)\nabla_aQ^{\pi_{\theta}}(s,a)|_{a=\pi_{\theta}(s^{\prime})}ds^{\prime}.\label{multiple_integral}
+\end{align}
+Since $J(\pi) = \expect_{s\sim d_0}[V^{\pi}(s)]$, 
+\begin{align}
+	\nabla_{\theta}J(\pi_{\theta}) &= \nabla_{\theta}\int_{S}d_0(s)V^{\pi_{\theta}}(s)ds \nonumber\\
+	&= \int_{S}d_0(s)\nabla_{\theta}V^{\pi_{\theta}}(s)ds \nonumber\\
+	&= \int_{S}\rho^{\pi_{\theta}}\nabla_{\theta}\pi_{\theta}(s)\nabla_aQ^{\pi_{\theta}}(s,a)|_{a=\pi_{\theta}(s)}ds
+\end{align}
+\end{proof}
+
+DDPG(Deep DPG) is a deep reinforcement learning algorithm which utilize this policy gradient. It adopts an Actor-Critic structure, and learns a critic network $Q(s,a|\omega)$ which approximates $Q^{\pi_{\theta}}$, and an actor network $\pi(s|\theta)=\pi_{\theta}$ which represents a measure $\pi$, respectively. The update algorithm of actor and critic is described below.\par
+DDPG uses mini-batch learning. First, update idea of critic is shown. The purpose of critic is to approximate $Q^{\pi}$. Because $Q$ function is able to be decomposed like \eqref{Q_func}, $Q(s,a|\omega)$ should also be updated to satisfy this relation. For that, parameter $\omega$ is updated to the direction where it minimize Temporal Difference(TD) error: 
+\begin{equation}
+	\textrm{TD} = Q(s,a|\omega) - \{r(s,a)+\gamma Q(s,\pi(s)|\omega)\}
+\end{equation}
+Since it is difficult to optimize for whole $(s,a)$ at once, DDPG uses the mean squared error for the mini-batch $E$ as the loss function and reduces it. 
+\begin{equation}
+	Loss = \frac{1}{N}\sum_{s\in E} \textrm{TD}^2
+\end{equation}\par
+Now, the above method of updating critic is supervised learning itself. Therefore, the data in the mini-batch must be i.i.d.. If the mini-batch $E$ uses the data of the last $N$ steps experienced by the agent, they are no longer independent. Hence, the agent stores the empirical data in a storage, called replay buffer, and randomly selects $N$ data from it to make a mini-batch to increase the variance of it.\par
+Next update law of actor are shown. Because actor is the representation of policy function $\pi(s)$, policy gradient is used for its update. However, since correct $Q$-function as in equation \eqref{true_pg} cannot be used in DDPG, approximated policy gradient
+\begin{equation}
+	\expect_{s\sim\rho^{\pi}}[\nabla_{\theta}\pi_{\theta}(s)\nabla_{a}Q(s, a|\omega)|_{a=\pi_{\theta}(s)}] \simeq \nabla_{\theta}J(\pi_{\theta}) 
+\end{equation}
+ is used. Furthurmore, an approximation to the expectation is made like following:
+ \begin{equation}
+	\expect_{s\sim\rho^{\pi}}[\nabla_{\theta}\pi_{\theta}(s)\nabla_{a}Q(s, a|\omega)|_{a=\pi_{\theta}(s)}] \simeq \frac{1}{N}\sum_{s\in E}[\nabla_{\theta}\pi_{\theta}(s)\nabla_{a}Q(s, a|\omega)|_{a=\pi_{\theta}(s)}]. \label{expectation_approximation}
+\end{equation}
+Therefore, the accuracy of the approximation of the policy gradient may be greatly degraded by the accuracy of critic approximation and the distribution of mini-batch.
+
+\subsection{Exploration in DDPG}
+\label{sec:exploration}
+% 探索の必要性
+% 探索ノイズの大小がDDPGにどのような影響を与えるのか
+Reinforcement learning uses empirical data collected by interaction with the environment to improve a policy. An agent needs to take a variety of actions in each state in order to know better actions. This is called "exploration". When the action space is discrete, a exploration method called "$\varepsilon$ - greedy" is widely known. \par
+In the case of continuous action space, it is common to collect data with the action determined by adding noise $e$ to the output of the policy function during training, such as
+\begin{equation}
+	a = \pi_{\theta}(s) + e.
+\end{equation}
+(The noise-added policy is called the behavior policy in order to distinguish it from the learning policy.) Intuitively, the larger this noise is, the wider the exploration is expected to be. By increasing the distribution of behavioral data around $a=\pi_{\theta}(s)$, we can expect to improve the accuracy of approximating the gradient of the $Q$-function with respect to $a$. \par
+Then, is it useful to enlarge the exploration noise in all cases? In DDPG, we stored the past empirical data in the replay buffer, and calculated the policy gradient using the data set selected with equal probability from them. Since the expected value of the policy gradient is taken for $s\sim\rho^{\pi_{\theta}}$, the state distribution of the replay buffer should be as close as possible to $\rho^{\pi_{\theta}}$. Adding a large exploration noise may violate this property in some cases. Therefore, it may be disadvantageous to enlarge the exploration noise. This is considered to be a kind of problem called the "exploration and exploitation dilemma".
+
+
+\section{Problem Formulation}
+\subsection{Self-Triggered Control}
+We consider control system like Fig \ref{image}.
+\begin{figure}[h]
+	\centering
+ 	\includegraphics[width=10cm]{event.png}
+ 	\caption{control system} \label{image}
+\end{figure}\\
+Here, the control target is a continuous-time system as Equation \eqref{continuous_system}
+\begin{equation}
+	\dot{s} = h(s,u) + \dot{w}\label{continuous_system}
+\end{equation}\par
+Now, we consider a feedback control for system \eqref{continuous_system}. In this paper, we call the observation of the state variable $s$ and the sending of the input signal to the actuator as "interaction". In the self-triggered control, the agent does not make interaction continuously, but after a communication interval $\tau$ seconds determined by the agent itself. In order to express it mathematically, we assume that the agent's control law $\pi$ is a vector-valued function consisting of two elements, where the first element represents the input $u$ sent to the actuator, and the second element represents the interval $\tau (sec)$. The input $u$ sent in the previous interaction is added until the time of the next interaction (ZOH control).
+
+\subsection{Optimal Self-Triggered Control}
+In order to converge to the origin state as quickly as possible with the minimum input energy while reducing the frequency of communication, the agent aims to find a policy $\pi^{*}$ that minimizes the following expected discounted cost $J(\pi)=\expect_{s\sim d_0}[V^{\pi}(s)]$, for the initial state $s\sim d_0$.
+\begin{equation}
+	V^{\pi}(s) = \int_{0}^{\infty} e^{-\alpha t}\expect_{w}[s(t)^{\top}Qs(t)+u(t)^{\top}Ru(t)+\beta C(t)|s(0)=s]\textrm{d}t
+\end{equation}
+If we separate the definite integral for each interval, we have 
+\begin{align}
+	V^{\pi}(s) &= \sum_{i=0}^{\infty}\int_{t_i}^{t_{i+1}} e^{-\alpha t}\expect_{w}[s(t)^{\top}Qs(t)+u_i^{\top}Ru_i+\beta C(t)|s(0)=s]\textrm{d}t \nonumber \\
+			 &= \sum_{i=0}^{\infty} e^{-\alpha t_i} (\int_{0}^{\tau_i}\expect_{w}[s(t)^{\top}Qs(t)+u_i^{\top}Ru_i|s(0)=s_i]\textrm{d}t + \beta) \nonumber \\
+			 &= \sum_{i=0}^{\infty} e^{-\alpha t_i} r(s_i, \pi(s_i)) \label{self_acc_reward}.
+\end{align}
+Here, $t_i$ is the time of the $i$th communication and $s_i$ is the state at that time. Also, let $[u_i, \tau_i]=\pi(s_i)$. Therefore, $V^{\pi}(s)$ satisfies the following Bellman equation. \par
+\begin{equation}
+	V^{\pi}(s) = r(s,\pi_{\theta}(s)) + e^{-\alpha\tau}\expect_{s^{\prime}}[V^{\pi}(s^{\prime}(s,\pi_{\theta}(s)))] \label{bellman}
+\end{equation}
+In addition, the action value function $Q^{\pi}$ is the discounted accumulation cost when agent freely chooses an action in the first step and follows the policy $\pi$ from the next step, which satisfies the following Bellman equation.
+\begin{equation}
+	Q^{\pi}(s,u,\tau) = r(s,u,\tau) + e^{-\alpha\tau}\expect_{s^{\prime}}[Q^{\pi}(s^{\prime}(s,u,\tau), \pi(s^{\prime}(s,u,\tau)))] \label{Q_bellman}
+\end{equation}
+
+\section{Reinforcement Learning for Self-Triggered Control}
+In this section, we consider the application of reinforcement learning to find the optimal self-trigger policy $\pi^{*}$. Simply thinking, we can consider the reinforcement learning problem by taking the communication as one step. Furthermore, DDPG may also be applied by approximating the $Q$-function, which satisfies the equation \eqref{Q_bellman} using a critic network, to obtain the policy gradient. In this section, we discuss the validity of this approach.
+
+\subsection{Deterministic Policy Gradient for Self-Triggered Control}
+Since the discount factor in Equation \eqref{self_acc_reward} depends on $\tau$ at each step, it differs from the general reinforcement learning problem. In this subsection, we discuss how the DDPG is affected by this difference. \par
+Actually, due to the property of $Q$-functions such as \eqref{Q_bellman}, DPG cannot be computed as in \eqref{true_pg}. Since 
+\begin{align}
+	\nabla_{\theta}V^{\pi_{\theta}}(s) &= \nabla_{\theta}V^{\pi_{\theta}}(s, \pi_{\theta}(s)) \nonumber \\
+	&= \nabla_{\theta}[r(s, \pi_{\theta}(s)) + e^{-\alpha\tau(s)}\expect_{s^{\prime}}[V^{\pi_{\theta}}(s^{\prime})] \nonumber \\
+	&= \nabla_{\theta}\pi_{\theta}(s)\nabla_ar(s,a)|_{a=\pi_{\theta}(s)} \nonumber \\
+	&\hspace{1ex}+e^{-\alpha\tau(s)}\int_{S}\{\nabla_{\theta}\pi_{\theta}(s)\nabla_aPr(s\to s^{\prime},1,a)|_{a=\pi(s)}V^{\pi_{\theta}(s^{\prime})}\nonumber\\
+	&\hspace{15ex}+Pr(s\to s^{\prime}, 1, \pi_{\theta})\nabla_{\theta}V^{\pi_{\theta}}(s^{\prime})\}ds^{\prime}\nonumber \\
+	&\hspace{1ex}+\int_{S}\nabla_{\theta}e^{-\alpha\tau(s)}Pr(s\to s^{\prime}, 1, \pi_{\theta})V^{\pi_{\theta}}(s^{\prime})ds^{\prime},
+\end{align}
+we have
+\begin{align}
+	&\nabla_{\theta}V^{\pi_{\theta}}(s) \nonumber \\
+	&= \sum_{i=0}^{\infty}\int_{S}\cdots\int_{S}Pr(s_0\to s_1,1,\pi_{\theta})Pr(s_{i-1}\to s_i,1,\pi_{\theta})\nonumber\\
+	&\hspace{10ex}e^{-\alpha\sum_{k=0}^{i-1}\tau(s_k)}\nabla_{\theta}\pi_{\theta}(s_i)\nabla_aQ^{\pi_{\theta}}(s,a)|_{a=\pi_{\theta}(s_i)}ds_ids_{i-1}\ldots ds_1\nonumber\\
+	&\hspace{1ex}+\sum_{i=1}^{\infty}\int_{S}\cdots\int_{S}Pr(s_0\to s_1,1,\pi_{\theta})Pr(s_{i-1}\to s_i,1,\pi_{\theta})\nonumber\\
+	&\hspace{10ex}e^{-\alpha\sum_{k=1}^{i-1}\tau(s_{k-1})}\nabla_{\theta}e^{-\alpha\tau(s_{i-1})}V^{\pi_{\theta}}(s_i)ds_ids_{i-1}\ldots ds_1.
+\end{align}
+Thus, we can conclude that DPG for self-triggered control can be written as
+\begin{align}
+	&\nabla_{\theta}J(\pi_{\theta})\nonumber \\
+	&= \expect_{s_0\sim d_0}[\nabla_{\theta}V^{\pi_{\theta}}(s_0)]\nonumber\\
+	&= \sum_{i=0}^{\infty}\int_{S}\cdots\int_{S}d_0(s_0)Pr(s_0\to s_1,1,\pi_{\theta})\cdots Pr(s_{i-1}\to s_i,1,\pi_{\theta})\nonumber\\
+	&\hspace{10ex}e^{-\alpha\sum_{k=0}^{i-1}\tau(s_k)}\nabla_{\theta}\pi_{\theta}(s_i)\nabla_aQ^{\pi_{\theta}}(s,a)|_{a=\pi_{\theta}(s_i)}ds_ids_{i-1}\ldots ds_0\nonumber\\
+	&\hspace{1ex}+\sum_{i=1}^{\infty}\int_{S}\cdots\int_{S}d_0(s_0)Pr(s_0\to s_1,1,\pi_{\theta})\cdots Pr(s_{i-1}\to s_i,1,\pi_{\theta})\nonumber\\
+	&\hspace{10ex}e^{-\alpha\sum_{k=1}^{i-1}\tau(s_{k-1})}\nabla_{\theta}e^{-\alpha\tau(s_{i-1})}V^{\pi_{\theta}}(s_i)ds_ids_{i-1}\ldots ds_0.
+\end{align}\\
+Here, we give the ideal algorithm for reinforcement learning for self-triggered control.
+\begin{algorithm}                      
+\caption{Ideal algorithm for Self-Triggered Control RL}         
+\label{alg1}                          
+\begin{algorithmic}                  
+    \STATE Write me.
+    \FOR
+    
+    \if0{
+    \IF{$n < 0$}
+    \STATE $X \Leftarrow 1 / x$
+    \STATE $N \Leftarrow -n$
+    \ELSE
+    \STATE $X \Leftarrow x$
+    \STATE $N \Leftarrow n$
+    \ENDIF
+    \WHILE{$N \neq 0$}
+    \IF{$N$ is even}
+    \STATE $X \Leftarrow X \times X$
+    \STATE $N \Leftarrow N / 2$
+    \ELSE[$N$ is odd]
+    \STATE $y \Leftarrow y \times X$
+    \STATE $N \Leftarrow N - 1$
+    \ENDIF
+    \ENDWHILE
+    \fi
+\end{algorithmic}
+\end{algorithm}
+
+
+
+
+
+following two issues are raised.
+\begin{itemize}
+	\item As in the case of fixed discount rates, it is not possible to summarize the multiple integrals
+	\item A term about $\nabla_{\theta}e^{-\alpha\tau(s_{i-1})}$ appears
+\end{itemize}
+In the next section, we propose a method to address both of these issues.
+
+
+
+
+\subsection{Proposed Method}
+First, in order to summarize the multiple integrals, we want to approximate $e^{-\alpha\sum_{j=0}^{i-1}\tau(s_k)}$ independent of $s_k$.
+Thus, we propose to fix the discount rate as
+\begin{equation}
+	\gamma_{\theta} = \expect_{s\sim E}[e^{-\alpha\tau(s)}]
+\end{equation}
+where $E$ denotes the replay buffer. With this approximation, the multiple integrals can be summarized as
+\begin{align}
+	&\sum_{i=0}^{\infty}\int_{S}\cdots\int_{S}Pr(s_0\to s_1,1,\pi_{\theta})Pr(s_{i-1}\to s_i,1,\pi_{\theta})\nonumber\\
+	&\hspace{10ex}e^{-\alpha\sum_{j=0}^{i-1}\tau(s_k)}\nabla_{\theta}\pi_{\theta}(s_i)\nabla_aQ^{\pi_{\theta}}(s,a)|_{a=\pi_{\theta}(s_i)}ds_ids_{i-1}\ldots ds_0\nonumber\\
+	&\simeq \sum_{i=0}^{\infty}\int_{S}Pr(s\to s^{\prime},i,\pi_{\theta})\gamma_{\theta}^i\nabla_{\theta}\pi_{\theta}(s^{\prime})\nabla_aQ^{\pi_{\theta}}(s^{\prime},a^{\prime})|_{a^{\prime}=\pi_{\theta}(s^{\prime})}ds^{\prime}
+\end{align}
+like in theorem 1. Also, with $\gamma_{\theta}$, the term about $\nabla_{\theta}e^{-\alpha\tau(s_{i-1})}$ can be approximated as
+\begin{align}
+	&\sum_{i=1}^{\infty}\int_{S}\cdots\int_{S}Pr(s_0\to s_1,1,\pi_{\theta})Pr(s_{i-1}\to s_i,1,\pi_{\theta})\nonumber\\
+	&\hspace{10ex}e^{-\alpha\sum_{j=1}^{i-1}\tau(s_{k-1})}\nabla_{\theta}e^{-\alpha\tau(s_{i-1})}V^{\pi_{\theta}}(s_i)ds_ids_{i-1}\ldots ds_1\nonumber\\
+	&\simeq \frac{1}{\gamma_{\theta}}\sum_{i=1}^{\infty}\int_{S}Pr(s\to s^{\prime},i,\pi_{\theta})\gamma_{\theta}^{i-1}\nabla_{\theta}\gamma_{\theta}V^{\pi_{\theta}}(s^{\prime})ds^{\prime}.
+\end{align}
+Using these approximations, the DPG for optimal self-triggered control can be regarded as
+\begin{equation}
+	\nabla_{\theta}J(\pi_{\theta}) \simeq \expect_{s\sim\hat{\rho}^{\pi_{\theta}}}[
+	\nabla_{\theta}\pi_{\theta}(s)\nabla_{a}Q^{\pi_{\theta}}(s, a)|_{a=\pi_{\theta}(s)}+\frac{1}{\gamma_{\theta}}V^{\pi_{\theta}}(s)\nabla_{\theta}\gamma_{\theta}] - \expect_{s\sim d_0}[\frac{1}{\gamma_{\theta}}V^{\pi_{\theta}}(s)\nabla_{\theta}\gamma_{\theta}]
+\end{equation}
+where, 
+\begin{equation}
+	\hat{\rho}^{\pi_{\theta}}(s) = \int_{S}\sum_{i=0}^{\infty}\gamma_{\theta}^id_0(s)Pr(s_0\to s, i, \pi_{\theta})ds_0
+\end{equation}
+
+\par
+The DDPG algorithm using proposed method is shown below. \par
+\begin{algorithm}                      
+\caption{DDPG for Self-Triggered Control}         
+\label{alg1}                          
+\begin{algorithmic}                  
+    \STATE Write me.
+    \if0{
+    \IF{$n < 0$}
+    \STATE $X \Leftarrow 1 / x$
+    \STATE $N \Leftarrow -n$
+    \ELSE
+    \STATE $X \Leftarrow x$
+    \STATE $N \Leftarrow n$
+    \ENDIF
+    \WHILE{$N \neq 0$}
+    \IF{$N$ is even}
+    \STATE $X \Leftarrow X \times X$
+    \STATE $N \Leftarrow N / 2$
+    \ELSE[$N$ is odd]
+    \STATE $y \Leftarrow y \times X$
+    \STATE $N \Leftarrow N - 1$
+    \ENDIF
+    \ENDWHILE
+    \fi
+\end{algorithmic}
+\end{algorithm}
+
+
+
+
+
+\subsection{Model Settings}
+
+In the self-triggered control, the agent needs to decide the input signal $u$ and the interval $\tau$ at each step. Thus, the action $a$ in reinforcement learning corresponds to $\begin{bmatrix}u & \tau \end{bmatrix}^{\top}$. \par
+Now, in this research, the control law is given as a state feedback. Therefore, the policy function is given as follows:
+\begin{equation}
+	\pi(s) = \begin{bmatrix}u(s) & \tau(s)\end{bmatrix}^{\top}
+\end{equation}\par
+We use DDPG as reinforcement learning algorithm. As described in section 2, actor and critic is expressed as neural networks respectively. Experiments have shown that learning diverges when using a general network, so here we use the special network. The architecture of 2 networks is in Fig \ref{NN}.
+\begin{figure}[h]
+	\centering
+ 	\includegraphics[width=10cm]{model.png}
+ 	\caption{Agent Model} \label{NN}
+\end{figure}\\
+The activation function "original" shown in Fig \ref{NN} is defined as $0.99 \times \textrm{sigmoid} + 0.01$ to meet upper and lower limits of interval described in the next section.\par
+
+
+\section{Consideration}
+% 小さいノイズの結果であることを明示する
+In this section, we study the effectiveness of the reinforcement learning approach to the optimal self-triggered control problem. We conduct numerical experiments and review the results for the cases of linear and nonlinear control systems, respectively. In both cases, the communication interval is allowed to be $0.01 (s) \sim 1.0 (s)$. 
+
+\subsection{Linear Case}
+First, we adopt reinforcement learning to self-triggered control for linear system. The control object is
+\begin{equation}
+	\dot{s} = As + Bu = \begin{bmatrix}-1& 4 \\ 2 & -3\end{bmatrix}s + \begin{bmatrix}2 \\ 4\end{bmatrix}u.
+\end{equation}
+Here, the input signal $u$ is limited to $-10 \sim 10$.
+
+\subsubsection{Initial Policy}
+For learning efficiency, we use $\pi^l_{\textrm{init}}$ such that
+\begin{equation}
+	\pi^l_{\textrm{init}} = \begin{bmatrix}-Ks&0.01\end{bmatrix}
+\end{equation}
+where $K$ is a feedback gain calculated by Linear Quadratic Regulator. This policy stabilize the system.
+
+\subsubsection{Learned Policy}
+Fig \ref{path_l} shows a control path with learned policy$\pi^l_{\textrm{RL}}$, stating from $s_0 = [3., 3.]$.
+\begin{figure}[h]
+	\centering
+ 	\includegraphics[width=8cm]{path_l.png}
+ 	\caption{A control path with learned policy $\pi^l_{\textrm{RL}}$} \label{path_l}
+\end{figure}\\
+Figure \ref{path_l} shows, from top to bottom, the L2 - norm of state $s$, the control input $u$, and the boolean representing interaction. From this figure, we can see that the communication interval is determined flexibly at each interaction.\par
+Now, we confirm whether the learned policy $\pi^l_{\textrm{RL}}$ enlarge the evaluation function $J(\pi)$ compared from the initital policy $\pi^l_{\textrm{init}}$. Since $J(\pi) = \expect_{s_0}[V^{\pi}(s_0)]$, we generate 500 initial states $s_0$ according to the initial state distribution $d_0$, and average the results of $V^{\pi}(s_0)$. We conduct this approximation of expectation 1000 times. From the result
+\unc{
+\begin{equation}
+	J(\pi^l_{\textrm{init}}) = , ~J(\pi^l_{\textrm{RL}}) = , 
+\end{equation}
+}
+we can confirm $J(\pi^l_{\textrm{init}}) < J(\pi^l_{\textrm{RL}})$. It can be concluded that the policy has been improved.
+
+\subsubsection{Comparison with Naiive Model Based Control}
+In this section, we compare the control performance with that of a naively designed model-based self-triggered control law $\pi^l_{\textrm{MB}}$. The control law $\pi^l_{\textrm{MB}}$ is defined as the solution of 
+\begin{equation}
+	\pi^l_{\textrm{MB}}(s) = \argmin_{u,\tau} \left\{\int_{0}^{\tau} s(t)^{\top}s(t)\textrm{d}t + u^2 - \lambda\tau + V_{\textrm{LQR}}(s^{\prime}(s,u,\tau))\right\}
+\end{equation}
+where $s(0) = s$. The control performance of $\pi^l_{\textrm{MB}}$ is 
+\unc{
+\begin{equation}
+	write~me
+\end{equation}
+}
+From the result, we can conclude that the control law obtained by our method outperforms the control law designed by a naive model-based design.
+
+
+\subsection{Non-Linear Case}
+In this subsection, we investigate whether the self-triggered control law can be learned by reinforcement learning even when the control target is extended to non-linear systems, especially control affine systems. We consider an inverted pendulum, whose state-space representation is
+\begin{equation}
+	\odif{}{t}\begin{pmatrix}\theta \\ \dot{\theta}\end{pmatrix} = 
+		\begin{pmatrix}\dot{\theta} \\ \frac{3g}{2l}\sin{\theta} + \frac{3}{ml^2}a \end{pmatrix} \label{pendulum}.
+\end{equation}
+Therefore, for an inverted pendulum, the state variable $s$ is considered to be $\begin{pmatrix}\theta & \dot{\theta}\end{pmatrix}^{\top}$.
+\par
+As in the linear case, the input signal $u$ is limited to $-10 \sim 10$.
+
+\subsubsection{Initial Policy}
+The initial policy $\pi_{\textrm{init}}$ used in this case is
+\begin{equation}
+	\pi_{\textrm{init}} = \begin{bmatrix}-Ks&0.2\end{bmatrix}
+\end{equation}
+where $K$ is a feedback gain calculated by Linear Quadratic Regulator. This policy stabilize the system.
+
+\subsubsection{Learned Policy}
+Fig \ref{path_1} shows a control path with learned policy, stating from $s_0 = [3., 3.]$.
+\begin{figure}[h]
+	\centering
+ 	\includegraphics[width=8cm]{path_1.png}
+ 	\caption{A control path with learned policy $\pi_{\textrm{RL}}$} \label{path_1}
+\end{figure}\\
+Figure \ref{path_1} shows, from top to bottom, the angle of the pendulum $\theta$, the control input $u$, and the boolean representing interaction. Similarly to the linear case, Figure \ref{path_1} shows that the agent decides the communication interval flexibly.\par
+Now let's compare $J(\pi_{\textrm{RL}})$ and $J(\pi_{\textrm{init}})$. As in linear case, we approximate $J(\pi) = \expect_{s_0}[V^{\pi}(s_0)]$ in the same way. The result is
+\begin{equation}
+	J(\pi_{\textrm{init}}) = 4.23 \pm 0.083,~J(\pi_{\textrm{RL}}) = 37.12 \pm 0.071 \label{compare_policy}.
+\end{equation}
+Since $J(\pi_{\textrm{init}}) < J(\pi_{\textrm{RL}})$, we can conclude that the policy has been improved in the non-linear case as well.
+
+\subsection{Optimality}
+Is the policy $\pi_{\textrm{RL}}$ described in the last section an optimal? If it is an optimal solution, the policy gradient must be $\bm{0}$. Therefore from equation \eqref{true_pg}, a condition
+\begin{equation}
+	\expect_{s\sim\rho^{\pi_{\textrm{RL}}}}[
+	\nabla_{\theta}\pi_{\textrm{RL}}(s)\nabla_{a}Q^{\pi_{\textrm{RL}}}(s, a)|_{a=\pi_{\textrm{RL}}(s)}] = \bm{0} \label{optimality}
+\end{equation}
+should be met. \par
+In order to check whether the policy $\pi_{\textrm{RL}}$ satisfies the condition \eqref{optimality}, we want to know $Q^{\pi_{\textrm{RL}}}(s,a)$. Then, we obtain the approximation of value function $V^{\pi_{\textrm{RL}}}(s) = \sum_{i=0}^{N}\gamma^i r(s_i,\pi_{\textrm{RL}}(s_i))$ with $N$ step simulation:
+\begin{equation}
+	V^{\pi_{\textrm{RL}}}_{\textrm{ap}}(s) = \sum_{i=0}^{N}\gamma^i r(s_i,\pi_{\textrm{RL}}(s_i)).
+\end{equation}
+Next, the approximation of $Q^{\pi_{\textrm{RL}}}$ is calculated with $V^{\pi_{\textrm{RL}}}_{\textrm{ap}}$ as following:
+\begin{equation}
+	Q^{\pi_{\textrm{RL}}}_{\textrm{apd}}(s,a) = r(s,a) + \gamma V^{\pi_{\textrm{RL}}}_{\textrm{ap}}.(s^{\prime})
+\end{equation}
+Since $\gamma < 1$, $Q^{\pi_{\textrm{RL}}}_{\textrm{apd}}(s,a)$ is a good approximation if the number of simulation steps $N$ is sufficiently large. However, to compute the policy gradient, we need to compute $\nabla_{a}Q^{\pi_{\textrm{RL}}}(s, a)$, while $Q^{\pi_{\textrm{RL}}}_{\textrm{apd}}$ can only be computed the value at $(s,a)$. Then, we approximate the function $Q^{\pi_{\textrm{RL}}}_{\textrm{apd}}(s,a)$ by supervised learning with $Q^{\pi_{\{textrm{RL}}}_{\textrm{apd}}(s,a)$ as the teacher data. This function is defined as $Q^{\pi_{\textrm{RL}}}_{\textrm{ap}}$.\par
+Now, when we calculate the policy gradient using $Q^{\pi_{\textrm{RL}}}_{\textrm{ap}}$, we obtain
+\unc{
+\begin{equation}
+	\expect_{s\sim\rho^{\pi_{\textrm{RL}}}}[
+	\nabla_{\theta}\pi_{\textrm{RL}}(s)\nabla_{a}Q^{\pi_{\textrm{RL}}}_{\textrm{ap}}(s, a)|_{a=\pi_{\textrm{RL}}(s)}] \neq \bm{0}, 
+\end{equation}
+}
+which means that the policy $\pi_{\textrm{RL}}$ is not an optimal policy. We will discuss the reason for this.
+
+\subsection{Approximation Accuracy of Critic}
+Since policy $\pi_{\textrm{RL}}$ makes
+\unc{
+\begin{equation}
+	\expect_{s\sim\rho^{\pi_{\textrm{RL}}}}[
+	\nabla_{\theta}\pi_{\textrm{RL}}(s)\nabla_{a}Q(s,a|\omega)|_{a=\pi_{\textrm{RL}}(s)}] \simeq \bm{0}
+\end{equation}
+}for critic network $Q(s,a|\omega)$, it is a solution to make the approximated gradient be 0. Therefore, the reason why we could not learn the optimal policy is considered to be the low approximation accuracy of critic. In this experiment, the exploration noise is given as small noise. This leads to a bias in the distribution of the action $a$ in the replay buffer. For example, the distribution of actions experienced in the neighborhood of $s=\begin{bmatrix}0 & 0\end{bmatrix}$ is shown in Figure \ref{data_distribution}.
+\begin{figure}[h]
+	\centering
+ 	\includegraphics[width=8cm]{data_distribution.png}
+ 	\caption{Action distribution in replay buffer around $s=[0~0]$.} \label{data_distribution}
+\end{figure}\\
+Since the approximation accuracy of $\nabla_{a} Q(s,a|\omega)|_{a=\pi_{\theta}(s)}$ is crucial for the calculation of the policy gradient, the problem is the lack of data around $a=\pi_{\theta}(s)$ which is represented by the orange dot in Figure \ref{data_distribution}.
+
+
+\subsection{Ingenuity}
+We see that small scale exploration noise leads low accuracy of critic's approximation. However, as we confirmed in section \ref{sec:exploration}, large scale exploration noise cause problem of experience distribution. Here, by using the information of the control target, we consider to devise a exploration method. \par
+The ideal distribution of replay buffer meets following 2 conditions:
+\begin{enumerate} 
+	\item The distribution of state $s$ is similar to discounted distribution $\rho^{\pi}(s)$
+	\item The variance of action $a$ is large for each state $s$.
+\end{enumerate}
+Therefore, we propose a method to control the noise scale inversely proportional to the gradient of the state $s^{\prime}$ of the next step with respect to the change of input $a$. 
+\begin{equation}
+	e \sim \frac{1}{c\|g\|+1} \mathcal{N}(0,1)
+\end{equation}
+where $g = \frac{ds^{\prime}}{da}$, $c$ is a hyper parameter. \par
+However, in the case of a non-linear system, it is difficult to compute the gradient of the next state $s^{\prime}$, so we will compute the gradient for a linearization of the system around the origin state.\par
+As a result of reinforcement learning for inverted pendulum using this exploration method, the obtained policy $\pi_{\textrm{MBRL}}$ achieve
+\begin{equation}
+	J(\pi_{\textrm{MBRL}}) = 68.10 \pm 0.018 \label{ingenuity}.
+\end{equation}
+From equation \eqref{compare_policy} and \eqref{ingenuity}, it is shown that learning had conducted better than that with small exploration noise.
+\par
+
+
+\section{Conclusion}
+In this paper, a method for obtaining the state feedback control law is proposed. In particular, it is confirmed by numerical examples that the control law obtained by our method outperforms the control law designed by a naive model-based way. \par 
+Furthermore, we also tackle the self-triggered control for nonlinear systems, which has not been considered in previous studies, and successfully obtain useful control laws. 
+
+
+
+%%% Acknowledgments %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\acknowledgment
+The author would like to express his sincere gratitude to Professor
+Yoshito Ohta and Assistant Professor Kenji Kashima for their helpful advices.
+
+%%% References %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\addcontentsline{toc}{section}{\refname} % Add to the table of contents.
+                                         % Delete if you use chapter option.
+\begin{thebibliography}{10}
+\bibitem{Q}
+C. J. Watkins, and P. Dayan. Q-learning. \textit{Machine Learning}, vol. 8, no. 3-4, pp. 279-292, 1992.
+\bibitem{DQN}
+V. Minh, K. Kavukcouglu, D. Silver. et al.. “Human-level control through deep reinforcement learning." \textit{Nature 518}, pp.529-533, 2015.
+\bibitem{DPG}
+D. Silver, G. Lever, N. Heess, T. Degris, D. Wierstra, et al.. “Deterministic Policy Gradient Algorithms." \textit{ICML Beijing, China.}, 2014, Beijing.
+\bibitem{DDPG}
+T. P. Lillicrap, J. J. Hunt, A. Pritzel, N.Heess, T. Erez, Y. Tassa, D. Silver, and D. Wierstra. Continuous control with deep reinforcement learning. \textit{International Conference on Learning Representations}, 2015.
+\bibitem{off-PAC}
+T. Degris, M. White and R. Sutton. “Off-Policy Actor-Critic." \textit{ICML Edinburgh, United Kingdom}, 2012.
+\bibitem{approximation}
+R. S. Sutton, D. McAllester, S. Singh, and Y. Mansour. "Policy gradient methods for reinforcement learning with function approximation." \textit{In Advances in Neural Information Processing Systems}, 2000.
+\bibitem{Adam}
+D. P. Kingma and J. Ba. “Adam: A Method for Stochastic Optimization." \textit{arXiv preprint arXiv: 1412.6980}, 2014.
+\bibitem{STC}
+T. Gommans, D. Antunes, T. Donkers, P. Tabuada, and M. Heemels. “Self-triggered linear quadratic control.” \textit{Automatica}, vol. 50, no. 4, pp. 1279-1287, 2014.
+
+\end{thebibliography}
+%%% If you want to use BibTeX, delete the above and insert code here.
+%% \bibliographystyle{...}
+%% \bibliography{...}
+
+%%% Appendix %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% If you don't need appendices, delete the below.
+\appendix
+
+\section{Appendix}
+This is an appendix. This is a citation~\cite{polya1945}.
+
+\begin{table}[htbp]
+  \caption{This is a table.}
+  \centering
+  \begin{tabular}{c|cc}
+      &  A  &  B \\
+    \hline
+    C &  70 & 80 \\
+    D & 100 &  0
+  \end{tabular}
+\end{table}
+
+%%% End of body %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fi
+\ifoutputcover
+\cleardoublepage
+%%% Covers and abstract for submission %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\makecover                      % Cover
+\makespine[\numberofspines]     % Spine
+\fi
+\ifoutputabstractforsubmission
+\makeabstractforsubmission      % Abstract for submission
+\fi
+\end{document}
