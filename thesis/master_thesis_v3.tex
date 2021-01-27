@@ -24,11 +24,11 @@
 \def\numberofspines{1}
 %%% Abstract %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \abstract{%
-  In this thesis, we construct the mathematical models of students who write
-  the master's thesis and develop efficient algorithms for writing the master's
-  thesis based on the models.
-  We show that the proposed algorithms generate the thesis 65536 times
-  more efficiently than writing by oneself.
+One of the control methods for continuous-time systems is the sample-value control. This is a control method in which the system state is observed and new control inputs are communicated at periodic intervals. The disadvantage of the sample-valued control is that it requires communication at every interval even when the control performance can be maintained without redesigning the control inputs, which results in extra cost for communication.\par
+In recent years, event-triggered control and self-triggered control have been focused as control methods for efficient communication and control input design. First of all, event-triggered control is a control method that observes the system state at fixed time intervals as in the case of sample-value control, and redesigns and communicates the control inputs only when the driving conditions are satisfied to achieve the desired control performance. Therefore, it can improve the efficiency in terms of communication cost compared with the sample value control.\par
+Next, self-triggered control is described. In the self-triggered control, unlike the sample-value control and the event-triggered control, the periodic state observation is not performed. Instead, the designer itself decides the next trigger time and communicates the state observation and control input after that time. For the self-triggered control, several model-based design methods have been proposed, but these methods do not explicitly consider the communication cost over a long time of control.\par
+In this paper, we formulate an optimal self-triggered control problem where communication cost is explicitly included, which has not been considered in previous studies. Then, we consider a policy gradient method to the problem formulated in this paper.\par
+We also propose a reinforcement learning algorithm for approximate computation of the policy gradient. As a result of the implementation, for the linear system, we can improve the policy from the control law designed naively in the model based method. We also succeeded in improving the policy from periodic control for self-triggered control of nonlinear systems, which was not solved in the previous study.\par
 }
 %%% Packages and definitions of your own macros %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\rme}{\mathrm{e}}
@@ -70,45 +70,44 @@
 \setcounter{page}{1}
 %%% Body %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
- In many control applications, controllers are nowadays implemented using communication networks in which the control task has to share the communication resources with other tasks. Despite the fact that resources can be scarce, controllers are typically still implemented in a time-triggered fashion, in which control tasks are executed periodically. This design choice often leads to over-utilization of the available communication resources, and/or causes a limited lifetime of battery-powered devices, as it might not be necessary to execute the control task every period to guarantee the desired closed-loop performance. \par
-Also in the area of "sparse control" (Gallieri \& Maciejowski, 2012), in which it is desirable to limit the changes in certain actuator signals while still realizing specific control objectives, periodic execution of control tasks may not be optimal either. In both networked control systems with scarce communication resources and sparse control applications arises the fundamental problem of determining optimal sampling and communication strategies, where optimality needs to reflect both implementation cost (related to the number of communications and/or actuator changes) as well as control performance. It is expected that the solution to this problem results in control strategies that abandon the periodic time-triggered control paradigm. \par
-Two approaches that abandon the periodic communication pattern are event-triggered control (ETC), see, e.g., Arzen (1999), Astrom and Bernhardsson (1999) and Donkers and Heemels (2012), Heemels, Sandee, and van den Bosch (2008), Heemels et al. (1999), Henningsson, Johannesson, and Cervin (2008), Lunze and Lehmann (2010), Tabuada (2007) and Wang and Lemmon (2009), and self-triggered control (STC), see, e.g., Almeida, Silvestre, and Pascoal (2010, 2011), Anta and Tabuada (2010), Donkers, Tabuada, and Heemels (2012), Mazo, Anta, and Tabuada (2010), Velasco, Fuertes, and Marti (2003) and Wang and Lemmon (2009). Although ETC is effective in the reduction of communication or actuator movements, it was originally proposed for different reasons, including the reduction of the use of computational resources and dealing with the event-based nature of the plants to be controlled. In ETC and STC, the control law consists of two elements being a feedback controller that computes the control input, and a triggering mechanism that determines when the control input has to be updated. The difference between ETC and STC is that in the former the triggering consists of verifying a specific condition continuously and when it becomes true, the control task is triggered, while in the latter at an update time the next update time is pre-computed. \par
-At present ETC and STC form popular research areas. However, two important issues have only received marginal attention: (i) the co-design of both the feedback law and the triggering mechanism, and (ii) the provision of performance guarantees (by design). To elaborate on (i), note that current design methods for ETC and STC are mostly emulation-based approaches, by which we mean that the feedback controller is designed without considering the scarcity in the system’s resources. The triggering mechanism is only designed in a subsequent phase, where the controller has already been fixed. Since the feedback controller is designed before the triggering mechanism, it is difficult, if not impossible, to obtain an optimal design of the combined feedback controller and triggering mechanism in the sense that the minimum number of control executions is achieved while guaranteeing closed-loop stability and a desired level of performance. \par
-By the way, artificial intelligence is nowadays used in various situations, notably in automatic driving technology, and the development of research on the subject of artificial intelligence is remarkable. One of the concepts to realize artificial intelligence is reinforcement learning. Reinforcement learning is an algorithm that learns behaviors that maximize the long-term benefits by repeated trial and error. In addition, although not mathematically proven, reinforcement learning has been used to obtain meaningful results for nonlinear systems. In this paper, we investigate the usefulness of reinforcement learning as a method to realize the self-triggered control law. \par
+One of the control methods for continuous-time systems is the sample-value control. This is a control method in which the system state is observed and new control inputs are communicated at periodic intervals. The disadvantage of the sample-valued control is that it requires communication at every interval even when the control performance can be maintained without redesigning the control inputs, which results in extra cost for communication.\par
+In recent years, event-triggered control and self-triggered control have been focused as control methods for efficient communication and control input design. First of all, event-triggered control is a control method that observes the system state at fixed time intervals as in the case of sample-value control, and redesigns and communicates the control inputs only when the driving conditions are satisfied to achieve the desired control performance. Therefore, it can improve the efficiency in terms of communication cost compared with the sample value control. For event-triggered control, several model-based design methods introduced in \cite{ETC_intro} have been proposed, and model-free methods using reinforcement learning such as \cite{ETC} have also been proposed.\par
+Next, self-triggered control is described. In the self-triggered control, unlike the sample-value control and the event-triggered control, the periodic state observation is not performed. Instead, the designer itself decides the next trigger time and communicates the state observation and control input after that time. For the self-triggered control, model-based design methods have been proposed in \cite{STC} and \cite{ECBF}. However, these methods do not explicitly consider the communication cost over a long time of control.\par
+By the way, artificial intelligence is nowadays used in various situations, notably in automatic driving technology, and the development of research on the subject of artificial intelligence is remarkable. One of the concepts to realize artificial intelligence is reinforcement learning. Reinforcement learning is an algorithm that learns behaviors that optimize the long-term benefits by repeated trial and error. In addition, although not mathematically proven, reinforcement learning has been used to obtain meaningful results for nonlinear systems. In this paper, we investigate the usefulness of reinforcement learning as a method to realize the self-triggered control law. \par
 The two main contributions of this research are
 \begin{itemize}
-	\item To formulate the optimal self-triggered control problem for long-time costs explicitly considering communication to costs, and to consider the policy gradient for it.
-	\item To obtain a state feedback control law that outperforms the control performance of a naively designed simulation-based self-triggered control law.
+	\item To formulate the optimal self-triggered control problem for long-time costs explicitly considering communication cost, and to consider the policy gradient for it.
 	\item To confirm the usefulness of reinforcement learning for self-triggered control not only for linear systems but also for non-linear systems.
 \end{itemize}
 
 \section{Preliminaries}
 \subsection{Background of Deep Reinforcement Learning}
-Consider a malkov decision process $M$ given with tuple $M=\{S,A,T,d_0,r,\gamma\}$. Here, $S,A$ denotes state, action set, and $T(s^{'}|s,a)$ express transition probability. Also, $d_0,r(s,a),\gamma\in[0,1]$ are distribution of initial state, reward, discount factor respectively. \par
-Now, the purpose of reinforcement learning is to find a policy such that
+Consider a malkov decision process $M$ given with tuple $M=\{S,A,TP,d_0,r,\gamma\}$. Here, $S,A$ denotes state, action set, and $TP(s^{'}|s,a)$ express transition probability. Also, $d_0,r(s,a),\gamma\in[0,1]$ are distribution of initial state, reward, discount factor respectively. \par
+The purpose of reinforcement learning is to find a policy such that
 \begin{equation}
 	\pi^{*}=\argmax_{\pi}J(\pi) \label{purpose_of_rl}
 \end{equation} 
 where evaluation function $J(\pi)$ and (state) value function $V^{\pi}(s)$ is given as following:
 \begin{align}
-	V^{\pi}(s) &= \sum_{t=0}^{\infty}\gamma^tr(s_t, a_t)|_{a_t=\pi(s_t)}, s_0 = s\\
+	V^{\pi}(s) &= \expect_{TP}\left[\sum_{t=0}^{\infty}\gamma^tr(s_t, a_t)|_{a_t=\pi(s_t)}, s_0 = s\right]\\
 	J(\pi) &= \expect_{s_0\sim d_0}[V^{\pi}(s_0)]
 \end{align}
-Here, we define $Q$ function, which is useful tool for analyzing reinforcement learning. $Q$ function is given as 
+The expectation $\expect_{TP}$ takes over the transition probability.\par
+Let us define $Q$ function, which is useful tool for analyzing reinforcement learning. $Q$ function is given as 
 \begin{align}
-	Q^{\pi}(s,a) &= r(s, a) + \gamma\sum_{t=1}^{\infty}\gamma^tr(s_t, a_t)|_{a_t=\pi(s_t)} \nonumber\\
-			    &= r(s, a) + \gamma V^{\pi}(s^{\prime}). \label{Q_func}
+	Q^{\pi}(s,a) &= r(s, a) + \gamma\expect_{TP}\left[\sum_{t=1}^{\infty}\gamma^tr(s_t, a_t)|_{a_t=\pi(s_t)} \right]\nonumber\\
+			    &= r(s, a) + \gamma \expect_{TP}[V^{\pi}(s^{\prime})]. \label{Q_func}
 \end{align}
-As showed in \eqref{Q_func}, $Q$ function express the value when agent select action $a$ freely and choose action according to the policy $\pi$ from next step. Thus, the $Q$-function is also known as the action value function.
+As shown in \eqref{Q_func}, $Q$ function express the value when the agent select action $a$ freely and choose action according to the policy $\pi$ from the next step. Thus, the $Q$-function is also known as the action value function.
 
 
 \subsection{Policy Iteration}
-There is an algorithm for achieving \eqref{purpose_of_rl}, called the policy iteration method. It consists in repeating the following two steps.
+There is an algorithm for achieving \eqref{purpose_of_rl}, called the policy iteration method. It consists of repeating the following two steps.
 \begin{enumerate}
 	\item Policy Evaluation: Find (or approximate) action value function $Q^{\pi}(s,a)$.
 	\item Policy Improvement: Update policy as $\pi(s)=\argmax_aQ^{\pi}(s,a)$.
 \end{enumerate}
-It is known that the optimal policy $\pi^{*}$ can be obtained by repeating the above two steps (Policy Improvement Theorem).
+It is known that the optimal policy $\pi^{*}$ can be obtained by repeating the above two steps (Policy Improvement Theorem).%文献
 
 \subsection{Algorithms adapted to the settings of state and action space}
 \label{sec:policy_improvement}
@@ -159,14 +158,14 @@ Since $J(\pi) = \expect_{s\sim d_0}[V^{\pi}(s)]$,
 \end{align}
 \end{proof}
 
-DDPG(Deep DPG) is a deep reinforcement learning algorithm which utilize this policy gradient. It adopts an Actor-Critic structure, and learns a critic network $Q(s,a|\omega)$ which approximates $Q^{\pi_{\theta}}$, and an actor network $\pi(s|\theta)=\pi_{\theta}$ which represents a measure $\pi$, respectively. The update algorithm of actor and critic is described below.\par
+DDPG(Deep DPG) is a deep reinforcement learning algorithm which utilize this policy gradient. It adopts an Actor-Critic structure, and learns a critic network $Q(s,a|\omega)$ which approximates $Q^{\pi_{\theta}}$, and an actor network $\pi(s|\theta)=\pi_{\theta}$ which represents a policy $\pi$, respectively. The update algorithm of actor and critic is described below.\par
 DDPG uses mini-batch learning. First, update idea of critic is shown. The purpose of critic is to approximate $Q^{\pi}$. Because $Q$ function is able to be decomposed like \eqref{Q_func}, $Q(s,a|\omega)$ should also be updated to satisfy this relation. For that, parameter $\omega$ is updated to the direction where it minimize Temporal Difference(TD) error: 
 \begin{equation}
-	\textrm{TD} = Q(s,a|\omega) - \{r(s,a)+\gamma Q(s,\pi(s)|\omega)\}
+	Q(s,a|\omega) - \{r(s,a)+\gamma \expect_{s^{\prime}}[Q(s^{\prime},\pi(s^{\prime})|\omega)]\}
 \end{equation}
 Since it is difficult to optimize for whole $(s,a)$ at once, DDPG uses the mean squared error for the mini-batch $E$ as the loss function and reduces it. 
 \begin{equation}
-	Loss = \frac{1}{N}\sum_{s\in E} \textrm{TD}^2
+	Loss = \frac{1}{N}\sum_{(s,a,s^{\prime})\in E} \{Q(s,a|\omega) - (r(s,a)+\gamma Q(s^{\prime},\pi(s^{\prime})|\omega))\}^2
 \end{equation}\par
 Now, the above method of updating critic is supervised learning itself. Therefore, the data in the mini-batch must be i.i.d.. If the mini-batch $E$ uses the data of the last $N$ steps experienced by the agent, they are no longer independent. Hence, the agent stores the empirical data in a storage, called replay buffer, and randomly selects $N$ data from it to make a mini-batch to increase the variance of it.\par
 Next update law of actor are shown. Because actor is the representation of policy function $\pi(s)$, policy gradient is used for its update. However, since correct $Q$-function as in equation \eqref{true_pg} cannot be used in DDPG, approximated policy gradient
@@ -192,12 +191,11 @@ Here, the control target is a continuous-time system as Equation \eqref{continuo
 \begin{equation}
 	\dot{s} = h(s,u) + \dot{w}\label{continuous_system}.
 \end{equation}\par
-Now, we consider a feedback control for system \eqref{continuous_system}. In this paper, we call the observation of the state variable $s$ and the sending of the input signal to the actuator as "interaction". In the self-triggered control, the agent does not make interaction continuously, but after a communication interval $\tau$ seconds determined by the agent itself. In order to express it mathematically, we assume that the agent's control law $\pi$ is a vector-valued function consisting of two elements, where the first element represents the input $u$ sent to the actuator, and the second element represents the interval $\tau (sec)$. The input $u$ sent in the previous interaction is added until the time of the next interaction (ZOH control).
+Now, we consider a feedback control for system \eqref{continuous_system}. In this paper, we call the observation of the state variable $s$ and the sending of the input signal to the actuator as "interaction". In the self-triggered control, the agent does not make interaction continuously, but after a communication interval $\tau$ seconds determined by the agent itself. In order to express it mathematically, we assume that the agent's control law $\pi$ is a vector-valued function consisting of two elements, where the first element represents the input $u$ sent to the actuator, and the second element represents the interval $\tau$ seconds. The input $u$ sent in the previous interaction is added until the time of the next interaction (Zero Order Hold control).
 
 \subsection{Previous Research for Self-Triggered Control}
-Here, we summarize previous studies on self-triggered control. 
-(write)\par
-In our research, we formulate an optimal self-triggered control problem in which communication is explicitly included in the cost. This makes it possible to consider the problem of finding a control policy with a long-term cost, instead of a one-step optimization.
+Previous researches in self-triggered control utilizing a Lyapunov function approach, such as \cite{STC} and \cite{ECBF}, make one step optimization of the next triggering time on each interaction.  However, this approach does not satisfy the optimality for the whole long time control episode. \par
+In this research, we formulate an optimal self-triggered control problem in which communication is explicitly included in the cost. This makes it possible to consider the problem of finding a control policy with a long-term cost, instead of a one-step optimization.
 
 \subsection{Optimal Self-Triggered Control}
 \label{sec:formulation}
@@ -212,15 +210,21 @@ In order to converge to the origin state as quickly as possible with the minimum
 \end{equation}
 where
 \begin{equation}
-	V^{\pi}(s) = \int_{0}^{\infty} e^{-\alpha t}\expect_{w}[s(t)^{\top}Qs(t)+u(t)^{\top}Ru(t)+\beta C(t)|s(0)=s]\textrm{d}t. \label{such_that}
+	V^{\pi}(s) = \int_{0}^{\infty} e^{-\alpha t}\expect_{w}[s(t)^{\top}Qs(t)+u(t)^{\top}Ru(t)+\beta C(t)|s(0)=s]\textrm{d}t \label{such_that}
 \end{equation}
+and $C(t)$ is a boolean function which denotes the agent interact at time $t$.\par
 If we separate the definite integral for each interval, we have 
 \begin{align}
 	V^{\pi}(s) &= \sum_{i=0}^{\infty}\int_{t_i}^{t_{i+1}} e^{-\alpha t}\expect_{w}[s(t)^{\top}Qs(t)+u_i^{\top}Ru_i+\beta C(t)|s(0)=s]\textrm{d}t \nonumber \\
-			 &= \sum_{i=0}^{\infty} e^{-\alpha t_i} (\int_{0}^{\tau_i}\expect_{w}[s(t)^{\top}Qs(t)+u_i^{\top}Ru_i|s(0)=s_i]\textrm{d}t + \beta) \nonumber \\
+			 &= \sum_{i=0}^{\infty} e^{-\alpha t_i} \left(\int_{0}^{\tau_i}e^{-\alpha t}\expect_{w}[s(t)^{\top}Qs(t)+u_i^{\top}Ru_i|s(0)=s_i]\textrm{d}t + \beta\right) \nonumber \\
 			 &= \sum_{i=0}^{\infty} e^{-\alpha t_i} r(s_i, \pi(s_i)) \label{self_acc_reward}.
 \end{align}
-Here, $t_i$ is the time of the $i$th communication and $s_i$ is the state at that time. Also, let $[u_i, \tau_i]=\pi(s_i)$. Therefore, $V^{\pi}(s)$ satisfies the following Bellman equation. \par
+Here, $t_i$ is the time of the $i$-th communication and $s_i$ is the state at that time. Also, let $[u_i, \tau_i]=\pi(s_i)$, and let be the reward function $r(s_i, u_i, \tau_i)$ of each steps as
+\begin{equation}
+	r(s_i, u_i, \tau_i) = \int_{0}^{\tau_i}e^{-\alpha t}\expect_{w}[s(t)^{\top}Qs(t)+u_i^{\top}Ru_i|s(0)=s_i]\textrm{d}t + \beta
+\end{equation}
+
+Therefore, $V^{\pi}(s)$ satisfies the following Bellman equation. \par
 \begin{equation}
 	V^{\pi}(s) = r(s,\pi_{\theta}(s)) + e^{-\alpha\tau}\expect_{s^{\prime}}[V^{\pi}(s^{\prime}(s,\pi_{\theta}(s)))] \label{bellman}
 \end{equation}
@@ -231,10 +235,10 @@ In addition, the action value function $Q^{\pi}$ is the discounted accumulation 
 
 
 \section{Reinforcement Learning for Self-Triggered Control}
-In this section, we consider the application of reinforcement learning to find the optimal self-trigger policy $\pi^{*}$. Simply thinking, we can consider the reinforcement learning problem by taking the communication as one step. Furthermore, DDPG may also be applied by approximating the $Q$-function, which satisfies the equation \eqref{Q_bellman} using a critic network, to obtain the policy gradient. In this section, we discuss the validity of this approach.
+In this section, we consider the application of reinforcement learning to find the optimal self-trigger policy $\pi^{*}$. Simply thinking, we can consider the reinforcement learning problem by taking the interaction as one step. Furthermore, DDPG may also be applied by approximating the $Q$-function, which satisfies the equation \eqref{Q_bellman} using a critic network, to obtain the policy gradient. In this section, we discuss the validity of this approach.
 
 \subsection{Deterministic Policy Gradient for Self-Triggered Control}
-Since the discount factor in Equation \eqref{self_acc_reward} depends on $\tau$ at each step, it differs from the general reinforcement learning problem. In this subsection, we discuss how the DDPG is affected by this difference. \par
+Since the discount factor in Equation \eqref{self_acc_reward} depends on $\tau$ at each step, it differs from the general reinforcement learning problem. In this subsection, we discuss how the DPG is affected by this difference. \par
 Actually, due to the property of $Q$-functions such as \eqref{Q_bellman}, DPG cannot be computed as in \eqref{true_pg}. Since 
 \begin{align}
 	\nabla_{\theta}V^{\pi_{\theta}}(s) &= \nabla_{\theta}Q^{\pi_{\theta}}(s, \pi_{\theta}(s)) \nonumber \\
@@ -263,7 +267,7 @@ where
     		\sum_{k=0}^{i-1}\tau_{\theta}(s_{k-1}) & (otherwise)
   		\end{cases}.
 \end{equation}\par
-Now, since $J(\pi_{\theta}) = \expect_{s_0\sim d_0}[V^{\pi_{\theta}}(s_0)]$, we have deterministic policy gradient theorem for self-triggered control.\newpage
+Now, since $J(\pi_{\theta}) = \expect_{s_0\sim d_0}[V^{\pi_{\theta}}(s_0)]$, we have deterministic policy gradient theorem for self-triggered control.
 
 \begin{th.}[Deterministic Policy Gradient Theorem for Self-Triggered Control]
 The gradient for evaluation function \eqref{evaluation}, \eqref{such_that} is calculated as, 
@@ -285,7 +289,7 @@ In this section, we discuss whether the critic learned using TD learning can app
 Here, we create a mini-batch $E$ from the dataset $D={(s,u,\tau,r,s)}$ and learn critic by minimizing the MSE of the TD error for the mini-batch $E$. Therefore, if there is a bias of the distribution of $(s,u,\tau)$ in the empirical data set $D$, the accuracy of function approximation outside the distribution will obviously be low. From the equation \eqref{PG_for_STC}, the approximation of $Q(s, \pi(s)|\omega)$ and $\nabla_aQ(s,a|\omega)|_{a=\pi(s)}$ is necessary for the calculation of the directional gradient, so we create a dataset $D$ which contains $s$ in the whole region of $S$ and $[u,\tau] = \pi(s) + e $ (where $e$ is a stochastic noise)\par
 Algorithm \ref{alg1} shows the learning algorithm for critics described in this section.
 \begin{algorithm}                      
-\caption{TD learning for critic network}         
+\caption{TD Learning for Critic Network}         
 \label{alg1}                          
 \begin{algorithmic}                  
     \STATE Sample $M$ states $s$ with equal probability from state space $S$.
@@ -297,11 +301,11 @@ Algorithm \ref{alg1} shows the learning algorithm for critics described in this 
     \ENDFOR
     \FOR {$\textrm{epoch} = 0$ to $N$}
     	\STATE Select $m$ data pairs $(s, u, \tau, r, s^{\prime})$ from $D$ and make a mini-batch $E$.
-	\STATE Calculate gradient $g = \pdif{}{\omega} \frac{1}{m}\sum\left(Q(s,u,\tau|\omega) - \{r + e^{-\alpha\tau}Q(s^{\prime}, \pi(s^{\prime})|\omega)\}\right)^2$.
+	\STATE Calculate gradient $g = \pdif{}{\omega} \frac{1}{m}\sum_{E}\left(Q(s,u,\tau|\omega) - \{r + e^{-\alpha\tau}Q(s^{\prime}, \pi(s^{\prime})|\omega)\}\right)^2$.
 	\STATE Update $\omega$ with gradient $g$.
     \ENDFOR
     \end{algorithmic}
-\end{algorithm}
+\end{algorithm}\\
 In the last part of this section, we compare $Q^{\pi}(s, \pi(s))$ for a self-triggered control law $\pi$ with the critic $Q(s,\pi(s)|\omega)$ which approximates $Q^{\pi}(s, \pi(s))$ using the algorithm \ref{alg1}. Both $Q^{\pi}(s, \pi(s))$ and $Q(s, \pi(s)|\omega)$ are functions of state $s$. The state $s$ is assumed to be two-dimensional, and the comparison between them is shown in Figure \ref{Q_approximation}. 
 \begin{figure}[H]
 	\centering
@@ -311,17 +315,15 @@ In the last part of this section, we compare $Q^{\pi}(s, \pi(s))$ for a self-tri
 In Figure \ref{Q_approximation}, the blue points indicate the true $Q^{\pi}$ and the orange points indicate the critics. The true $Q^{\pi}$ is obtained by simulation. From Figure \ref{Q_approximation}, we can see that the critic learned by Algorithm \ref{alg1} is a good approximation of $Q^{\pi}$.
 
 
-
-
 \subsection{Ideal Algorithm}
-We start by considering an ideal algorithm for computing the exact policy gradient　\eqref{PG_for_STC} without considering the computational complexity. First, for an initial state $s_0$, we perform $P$ episodes of control for $T$ seconds.  In each step, we store $(s_i, u_i, \tau_i, r_i, t_i)$ in a set. The difference with DDPG is that the time at each step is also stored. When let $T_i$ be the set $ i\{i~|~t_i \leq T\}$. for each control path, we can approximate $\nabla_{\theta}V^{\pi_{\theta}}(s_0)$ by computing 
+We start by considering an ideal algorithm for computing the exact policy gradient　\eqref{PG_for_STC} without considering the computational complexity. First, for an initial state $s_0$, we perform $P$ episodes of control for $T$ seconds.  In each step, we store $(s_i, u_i, \tau_i, r_i, t_i)$ in a set. The difference with DDPG is that the time at each step is also stored. When let $T_i$ be the set $\{i~|~t_i \leq T\}$. for each control path, we can approximate $\nabla_{\theta}V^{\pi_{\theta}}(s_0)$ by computing 
 \begin{equation}
-	\sum_{i\in T_i} e^{-\alpha t_i}\{\nabla_{\theta}\pi_{\theta}(s_i)\nabla_{a}Q(s,a|\omega)|_{a=\pi_{\theta}(s_i)} + \nabla_{\theta}e^{-\alpha\tau_{\theta}(s_{i})}Q(s_{i+1},\pi_{\theta}(s_{i+1})|\omega)\} \label{good_approximation_of_STCDPG} %シグマでwhileを表したい
+	\sum_{i\in T_i} e^{-\alpha t_i}\{\nabla_{\theta}\pi_{\theta}(s_i)\nabla_{a}Q(s,a|\omega)|_{a=\pi_{\theta}(s_i)} + \nabla_{\theta}e^{-\alpha\tau_{\theta}(s_{i})}Q(s_{i+1},\pi_{\theta}(s_{i+1})|\omega)\} \label{good_approximation_of_STCDPG}
 \end{equation}
 and averaging it over $P$ paths. We can approximate the policy gradient by generating $M$ initial states $s_0$ from the initial state distribution $d_0$ and taking the average of this calculation for each of them. If we take $P, N$ and $M$ to be infinitely large, and if $Q(s,a|\omega)$ is a good approximation of $Q^{\pi_{\theta}}(s,a)$, we can calculate the correct policy gradient.\par
 In algorighm \ref{alg2}, the reinforcement learning method with ideal calculation of policy gradient at each step. 
 \begin{algorithm}                      
-\caption{Ideal algorithm for Self-Triggered Control RL}         
+\caption{Ideal Algorithm for Self-Triggered Control RL}         
 \label{alg2}                          
 \begin{algorithmic}                  
     \STATE Initialize actor $\pi_{\theta}(s)$ and critic $Q(s,u,\tau|\omega)$.
@@ -355,13 +357,13 @@ Assuming that the update of the actor is very gradual, the replay buffer stores 
 \begin{equation}
 	\frac{1}{N}\sum_{(s, s^{\prime})\in E}\{\nabla_{\theta}\pi_{\theta}(s)\nabla_{a}Q(s,a|\omega)|_{a=\pi_{\theta}(s)}+\nabla_{\theta}e^{-\alpha\tau_{\theta}(s)}Q(s, \pi_{\theta}(s)|\omega)\} \label{app_pg_stc}
 \end{equation}
-for the mini-batch $E$ will approximate \eqref{PG_for_STC} well. This is because the distribution of the mini-batch is discounted for time $t$. Algorithm \ref{alg3} utilize this idea.
+for the mini-batch $E$ will approximate \eqref{PG_for_STC} well. This is because the distribution of the mini-batch $E$ is discounted for time $t$. Algorithm \ref{alg3} utilize this idea.
 \begin{algorithm}                      
-\caption{Practical algorithm for Self-Triggered Control RL}         
+\caption{Practical Algorithm for Self-Triggered Control RL}         
 \label{alg3}                          
 \begin{algorithmic}                  
     \STATE Initialize actor $\pi_{\theta}(s)$ and critic $Q(s,u,\tau|\omega)$.
-    \STATE Make target networks $\pi_{\theta^{\prime}}(s)$ and critic $Q(s,u,\tau|\omega^{\prime})$ by cloning actor and critic respectively.
+    \STATE Make target networks $\pi_{\theta^{\prime}}(s)$ and $Q(s,u,\tau|\omega^{\prime})$ by cloning actor and critic respectively.
     \FOR {$\textrm{episode} = 0$ to $M$}
     	\STATE Initialize $s_0\in d_0$.
     	\STATE Set $i = 0, t_i = 0$.
@@ -400,17 +402,21 @@ Since the discount factor is fixed, we can simply apply the DDPG to this problem
 % 小さいノイズの結果であることを明示する
 In this section, we study the effectiveness of the reinforcement learning approach to the optimal self-triggered control problem. We conduct numerical experiments and review the results for the cases of linear and nonlinear control systems, respectively. In both cases, the communication interval is allowed to be $0.01 (s) \sim 10.0 (s)$. 
 
-\subsection{Evaluation Method}
-In this section, we use the valuation function $J(\pi)$ as a criterion to evaluate the policy $\pi$. $J(\pi)$ was the expectation of the value function $V^{\pi}(s)$ with respect to the initial state distribution $s_0$.In this paper, we assume that the initial state distribution $d_0$ is a uniform distribution on the state space $S$ in both linear and nonlinear cases. Then, the state space $S$ is discretized into a grid, and the value function $V^{\pi}(s)$ for each state $s$ on the grid is calculated by simulation and averaged to approximate the valuation function $J(\pi)$. \par
-Note that we considered the minimization problem of the evaluation function \ref{evaluation} in section \ref{sec:formulation}, but from now on, we consider it as the maximization problem of the evaluation function multiplied by -1.
+\subsection{Evaluation Criteria}
+In this section, we use the valuation function $J(\pi)$ as a criterion to evaluate the policy $\pi$. $J(\pi)$ was the expectation of the value function $V^{\pi}(s)$ with respect to the initial state distribution $s_0$.In this paper, we assume that the initial state distribution $d_0$ is a uniform distribution on the state space $S$ in both linear and nonlinear cases. Then, the state space $S$ is discretized into a grid, and the value function $V^{\pi}(s)$ for each state $s$ on the grid is calculated by simulation and averaged to approximate the valuation function $J(\pi)$. In order to take into account the effect of system noise, $V^{\pi}(s)$ is the average of the long-time costs of several simulations for each state $s$.\par
+Note that we considered the minimization problem of the evaluation function \eqref{evaluation} in section \ref{sec:formulation}, but from now on, we consider it as the maximization problem of the evaluation function multiplied by -1. In other words, the evaluation value of a policy $\pi$ is defined as 
+\begin{equation}
+	\tilde{J}(\pi) = - J(\pi),
+\end{equation}
+and the higher the value, the better the policy.
 
 \subsection{Linear System}
 First, we adopt reinforcement learning to self-triggered control for linear system. The control object is
 \begin{equation}
 	\dot{s} = As + Bu + D\dot{w}= \begin{bmatrix}-1& 4 \\ 2 & -3\end{bmatrix}s + \begin{bmatrix}2 \\ 4\end{bmatrix}u + \begin{bmatrix}0.6 \\ 0.3\end{bmatrix}\dot{w}
 \end{equation}
-where $\dot{w}$ is wiener process noise. Here, the input signal $u$ is limited to $-10 \sim 10$.
-
+where $\dot{w}$ is wiener process noise. Here, the input signal $u$ is limited to $-10 \sim 10$. And let the state spase be $S = \{s\in \mathbb{R}^2| s_0\in[-7,7], s_1\in[-7,7]\}$. If an element of state $s$
+ exceed the range, it will be clipped.
 
 \subsubsection{Initial Policy}
 For the comparison with the control performance with that of a naively designed model-based self-triggered control law, we use $\pi^{\textrm{MB}}(s)$ such that
@@ -421,7 +427,7 @@ where $s^{\prime}_e=\expect_{w}[s^{\prime}(s,u,\tau)]$, $\Sigma=Var_w[s^{\prime}
 In order to use $\pi_{\textrm{MB}}$ as an initial policy for reinforcement learning, we represent $\pi_{\textrm{MB}}$ in a neural network by supervised learning of $\pi_{\textrm{MB}}(s)$ for $M$ randomly generated states $s$ in the state space $S$. We refer to this network as $\hat{\pi}_{\textrm{MB}}$.\par
 The evaluation value of $\hat{\pi}_{\textrm{MB}}$ is
 \begin{equation}
-	J(\hat{\pi}_{\textrm{MB}}) \simeq -19.605850573533203.
+	\tilde{J}(\hat{\pi}_{\textrm{MB}}) \simeq -19.605850573533203.
 \end{equation}
 Figure \ref{naiive} shows the control path with initial policy $\hat{\pi}_{\textrm{MB}}$ stating from $s_0 = [3., 3.]$.
 \begin{figure}[H]
@@ -433,22 +439,22 @@ In Figure \ref{naiive}, the norm of state $s$, the control signal $u$ and the bo
 
 
 \subsubsection{Result of Proposed Method}
-First, we consider the results of reinforcement learning using the proposed method 1 with $\hat{\pi}^{\textrm{MB}}$ as the initial policy. Figure \ref{proposed_1_linear} shows the path controlled by the policy $\pi_{\textrm{prop}1}$ from the initial state $s_0=\begin{bmatrix}3 & 3\end{bmatrix}$.
+First, we consider the results of reinforcement learning using the proposed method 1 with $\hat{\pi}^{\textrm{MB}}$ as the initial policy. Figure \ref{proposed_1_linear} shows the path controlled by the policy $\pi_{\textrm{prop}}^L$ from the initial state $s_0=\begin{bmatrix}3 & 3\end{bmatrix}$.
 \begin{figure}[H]
 	\centering
  	\includegraphics[width=8cm]{proposed_1_linear.png}
- 	\caption{A control path with learned policy $\pi_{\textrm{prop}1}$} \label{proposed_1_linear}
+ 	\caption{A control path with learned policy $\pi_{\textrm{prop}}^L$} \label{proposed_1_linear}
 \end{figure}
-The evaluation value of this policy $\pi_{\textrm{prop}1}$ is
+The evaluation value of this policy $\pi_{\textrm{prop}}^L$ is
 \begin{equation}
-	J(\pi_{\textrm{prop}1}) \simeq -11.986561081591695.
+	\tilde{J}(\pi_{\textrm{prop}}^L) \simeq -11.986561081591695.
 \end{equation}
 Thus, we can see the improvement of policy from $\pi_{\textrm{MB}}$.\par
 The change of the value of the evaluation function $J( \pi_{\theta})$ as the policy parameter $\theta$ is updated is shown in Figure \ref{evaluation_log_linear}.
 \begin{figure}[H]
 	\centering
  	\includegraphics[width=10cm]{evaluation_log_linear.png}
- 	\caption{Improvement of policy} \label{evaluation_log_linear}
+ 	\caption{Policy improvement on linear case} \label{evaluation_log_linear}
 \end{figure}
 Figure \ref{evaluation_log_linear} shows an example of successful learning. However, since the calculation of the policy gradient depends on the approximation accuracy of the critic according to the equation \eqref{app_pg_stc}, we often observed a sharp deterioration of the policy using the proposed method. Therefore, the learning accuracy of critic is a future work.
 
@@ -487,12 +493,12 @@ In this subsection, we investigate whether the self-triggered control law can be
 \end{equation}
 where $\dot{w}$ is wiener process noise. Therefore, for an inverted pendulum, the state variable $s$ is considered to be $\begin{pmatrix}\theta & \dot{\theta}\end{pmatrix}^{\top}$.
 \par
-As in the linear case, the input signal $u$ is limited to $-10 \sim 10$.
+As in the linear case, the input signal $u$ is limited to $-10 \sim 10$. And let the state spase be $S = \{s\in \mathbb{R}^2| s_0\in[-\pi,\pi], s_1\in[-2\pi,2\pi]\}$. If angle $\|\theta\| > \pi$, $\theta$ will be  replaced by the equivalent angle which satisfies $\|\theta\| \leq \pi$. And if Angular velocity $\|\dot{\theta}\| > 2\pi$, $\|\dot{\theta}\|$ will be clipped.
 
 \subsubsection{Initial Policy}
 The initial policy $\pi_{\textrm{init}}$ used in this case is
 \begin{equation}
-	\pi_{\textrm{init}} = \begin{bmatrix}-Ks&0.2\end{bmatrix}
+	\pi_{\textrm{init}}(s) = \begin{bmatrix}-Ks&0.2\end{bmatrix}
 \end{equation}
 where $K$ is a feedback gain calculated by Linear Quadratic Regulator for linearized system around $s = \bm{0}$. Figure \ref{sample_02} shows the control path with initial policy $\pi_{\textrm{init}}$ stating from $s_0 = [3., 3.]$.
 \begin{figure}[h]
@@ -500,29 +506,30 @@ where $K$ is a feedback gain calculated by Linear Quadratic Regulator for linear
  	\includegraphics[width=8cm]{sample_02.png}
  	\caption{A control path with initial policy $\pi_{\textrm{init}}$} \label{sample_02}
 \end{figure}\\
-The evaluation value of $\hat{\pi}_{\textrm{init}}$ is
+The evaluation value of $\pi_{\textrm{init}}$ is
 \begin{equation}
-	J(\hat{\pi}_{\textrm{init}}) \simeq -62.492721990335504.
+	\tilde{J}(\pi_{\textrm{init}}) \simeq -62.492721990335504.
 \end{equation}
+In Figure \ref{sample_02}, the angle of pendulum $\theta$ rad, the torque $u$ N$\cdot$m and the boolean which denotes whether agent interact with environment at time $t$ second are shown from top to bottom.
 
 
 \subsubsection{Result of Proposed Method}
-First, we show the results of reinforcement learning by the proposed method 1. Figure \ref{proposed_1_nl} shows the control path by the obtained measure $\pi_{\textrm{prop}1}$ stating from $s_0 = [3., 3.]$.
+First, we show the results of reinforcement learning by the proposed method 1. Figure \ref{proposed_1_nl} shows the control path by the obtained policy $\pi_{\textrm{prop}}^N$ stating from $s_0 = [3., 3.]$.
 \begin{figure}[H]
 	\centering
  	\includegraphics[width=8cm]{proposed_1_nl.png}
- 	\caption{A control path with learned policy $\pi_{\textrm{prop}1}$} \label{proposed_1_nl}
+ 	\caption{A control path with learned policy $\pi_{\textrm{prop}}^N$} \label{proposed_1_nl}
 \end{figure}
-The evaluation value of $\pi_{\textrm{prop}1}$ is
+The evaluation value of $\pi_{\textrm{prop}}^N$ is
 \begin{equation}
-	J(\pi_{\textrm{prop}1}) \simeq -33.49714598533895.
+	\tilde{J}(\pi_{\textrm{prop}}^N) \simeq -33.49714598533895.
 \end{equation}\\
 Thus, we can confirm the improvement of policy.\par
-And the improvement of policy is shown in Figure \ref{evaluation_log_nl}.
+The change of the value of the evaluation function $J( \pi_{\theta})$ as the policy parameter $\theta$ is updated is shown in Figure \ref{evaluation_log_nl}.
 \begin{figure}[H]
 	\centering
  	\includegraphics[width=10cm]{evaluation_log_nl.png}
- 	\caption{Improvement of policy} \label{evaluation_log_nl}
+ 	\caption{Policy improvement on non-linear case} \label{evaluation_log_nl}
 \end{figure}
 
 \if0
@@ -549,7 +556,7 @@ Therefore, as in the linear case, it is possible that the proposed method 2 can 
 \section{Conclusion}
 In this paper, we formulate an optimal self-triggered control problem where communication cost is explicitly included, which has not been considered in previous studies. Then, we consider a reinforcement learning approach to the problem.  \par
 First, from the configuration of the evaluation function, we confirm that the deterministic policy gradient theorem for general reinforcement learning is not directly applicable, and then we derive a policy gradient theorem that is compatible with the formulated optimal self-triggered control problem. \par
-In this paper, we also propose a reinforcement learning algorithm for approximate computation of the measure gradient. As a result of the implementation, for the linear system, we can improve the measure in the sense of the formulated evaluation function for the control law designed naively in the model base. We also succeeded in improving the measure for self-triggered control of nonlinear systems, which was not solved in the previous study. \par
+In this paper, we also propose a reinforcement learning algorithm for approximate computation of the policy gradient. As a result of the implementation, for the linear system, we can improve the policy in the sense of the formulated evaluation function for the control law designed naively in the model base. We also succeeded in improving the policy for self-triggered control of nonlinear systems, which was not solved in the previous study. \par
 However, the computational complexity and the way of saving the empirical data are important issues to be solved in the future, because they greatly affect the results of the calculation of the policy gradient.
 
 %%% Acknowledgments %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -560,7 +567,15 @@ Yoshito Ohta and Assistant Professor Kenji Kashima for their helpful advices.
 %%% References %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \addcontentsline{toc}{section}{\refname} % Add to the table of contents.
                                          % Delete if you use chapter option.
-\begin{thebibliography}{10}
+\begin{thebibliography}{20}
+\bibitem{ETC_intro}
+W. P. M. H. Heemels, K. H. Johansson, and P. Tabuada. “An intro- duction to event-triggered and self-triggered control.” \textit{In Proc. of the 51st IEEE International Conference on Decision and Control}, 2012.
+\bibitem{ETC}
+D. Baumann, J. J. Zhu, G. Martius, and S. Trimpe. “Deep Reinforcement Learning for Event-Triggered Control.”  \textit{In Proc. of the 57th IEEE International Conference on Decision and Control}, 2018.
+\bibitem{STC}
+T. Gommans, D. Antunes, T. Donkers, P. Tabuada, and M. Heemels. “Self-triggered linear quadratic control.” \textit{Automatica}, vol. 50, no. 4, pp. 1279-1287, 2014.
+\bibitem{ECBF}
+G. Yang, C. Belta, and R. Tron. “Self-triggered Control for Safety Critical Systems Using Control Barrier Functions."  \textit{In American Control Conference (ACC) Philadelphia, USA}, 2019.
 \bibitem{Q}
 C. J. Watkins, and P. Dayan. Q-learning. \textit{Machine Learning}, vol. 8, no. 3-4, pp. 279-292, 1992.
 \bibitem{DQN}
@@ -569,14 +584,14 @@ V. Minh, K. Kavukcouglu, D. Silver. et al.. “Human-level control through deep 
 D. Silver, G. Lever, N. Heess, T. Degris, D. Wierstra, et al.. “Deterministic Policy Gradient Algorithms." \textit{ICML Beijing, China.}, 2014, Beijing.
 \bibitem{DDPG}
 T. P. Lillicrap, J. J. Hunt, A. Pritzel, N.Heess, T. Erez, Y. Tassa, D. Silver, and D. Wierstra. Continuous control with deep reinforcement learning. \textit{International Conference on Learning Representations}, 2015.
+\bibitem{survey}
+I. Grondman, L. Busoniu, G. A. Lopes, and R. Babuska. “A Survey of Actor-Critic Reinforcement Learning: Standard and Natural Policy Gradient." \textit{IEEE Transactions on Systems, Man, and Cybernetics, Part C (Applications and Reviews)}, 42(6):1291-1307, 2012.
 \bibitem{off-PAC}
 T. Degris, M. White and R. Sutton. “Off-Policy Actor-Critic." \textit{ICML Edinburgh, United Kingdom}, 2012.
 \bibitem{approximation}
 R. S. Sutton, D. McAllester, S. Singh, and Y. Mansour. "Policy gradient methods for reinforcement learning with function approximation." \textit{In Advances in Neural Information Processing Systems}, 2000.
 \bibitem{Adam}
 D. P. Kingma and J. Ba. “Adam: A Method for Stochastic Optimization." \textit{arXiv preprint arXiv: 1412.6980}, 2014.
-\bibitem{STC}
-T. Gommans, D. Antunes, T. Donkers, P. Tabuada, and M. Heemels. “Self-triggered linear quadratic control.” \textit{Automatica}, vol. 50, no. 4, pp. 1279-1287, 2014.
 
 \end{thebibliography}
 %%% If you want to use BibTeX, delete the above and insert code here.
