@@ -98,7 +98,7 @@ Let us define $Q$ function, which is useful tool for analyzing reinforcement lea
 	Q^{\pi}(s,a) &= r(s, a) + \gamma\expect_{\Phi}\left[\sum_{t=1}^{\infty}\gamma^tr(s_t, a_t)|_{a_t=\pi(s_t)} \right]\nonumber\\
 			    &= r(s, a) + \gamma \expect_{\Phi}[V^{\pi}(s^{\prime})]. \label{Q_func}
 \end{align}
-As shown in \eqref{Q_func}, $Q$ function express the value when the agent select action $a$ freely and choose action according to the policy $\pi$ from the next step. Thus, the $Q$-function is also known as the action value function.
+As shown in \eqref{Q_func}, $Q$ function express the value when the agent select action $a$ freely and choose action according to the policy $\pi$ from the next step. Thus, the $Q$ function is also known as the action value function.
 
 \subsection{Policy Iteration}
 \label{sec:policy_improvement}
@@ -110,11 +110,11 @@ There is an algorithm for achieving \eqref{purpose_of_rl}, called the policy ite
 It is known that the optimal policy $\pi^{*}$ can be obtained by repeating the above two steps (Policy Improvement Theorem\cite{RL}).\par
 In the case that both the state space and the action space take discrete values, it is easy to obtain
 $\pi(s)=\argmax_aQ^{\pi}(s,a)$ by storing $Q^{\pi}(s,a)$ in a table. This is not true for the case where the state space is continuous. Since the state $s$ takes a continuous value, it cannot be stored in a table. Therefore, DQN\cite{DQN} took the approach of approximating $Q^{\pi}(s,a)$ by parametrizing it using a neural network. Since the action space is discrete, it is still possible to obtain $\argmax_aQ^{\pi}(s,a)$. \par
-In the case where both state and action space is continuous, the problem is that it is very expensive to obtain $\argmax_aQ^{\pi}(s,a)$. Thus, up to this point, the policy $\pi$ has been determined by the Q-function, but this approach cannot be taken when both spaces are continuous. 
-Therefore, the policy function is often parameterized as $\pi_{\theta}$ and the parameter $\theta$ is updated by gradient mothod. 
+In the case where both the state and action space are continuous, the problem is that it is very expensive to obtain $\argmax_aQ^{\pi}(s,a)$. Thus, up to this point, the policy $\pi$ has been determined by the  $Q$ function, but this approach cannot be taken when both spaces are continuous. 
+Therefore, the policy function is often parameterized as $\pi_{\theta}$ and the parameter $\theta$ is updated by gradient method. 
 
 \subsection{Deterministic Policy Gradient Method}
-Silver et al.\cite{DPG} finds the gradient for the evaluation function $J(\pi_{\theta})$, even if the policy $\pi(s)$ is defined as deterministic policy. This gradient is known as deteministic policy gradient(DPG), and it is calculate as following theorem.
+Silver et al.\cite{DPG} find the gradient for the evaluation function $J(\pi_{\theta})$, even if the policy $\pi(s)$ is defined as deterministic policy. This gradient is known as deteministic policy gradient(DPG), and it is calculate as following theorem.
 \begin{prop.}[Deterministic Policy Gradient Theorem]
 The gradient for evaluation function $\nabla_{\theta}J(\pi_{\theta})$ is given as, 
 \begin{align}
@@ -160,7 +160,7 @@ DDPG uses mini-batch learning. First, we describe how the critic is updated. The
 \begin{equation}
 	Q(s,a|\omega) - \{r(s,a)+\gamma \expect_{s^{\prime}}[Q(s^{\prime},\pi(s^{\prime})|\omega)]\}
 \end{equation}
-Since it is difficult to optimize for whole $(s,a) \in S\times A$ at once, DDPG optimize for the emperical data, stored in a strage called the replay buffer. To be more precise, DDPG updates the critic to minimize the MSE of the TD error for the mini-batch $E$ created from the replay buffer. Therefore, the mini-batch $E$ should be i.i.d.. Hence, mini-batch $E$ is made by randomly sampling $M$ data from the replay buffer to increase the variance of it. Then the critic is updated to minimize the loss function
+Since it is difficult to optimize for whole $(s,a) \in S\times A$ at once, DDPG optimize for the emperical data, stored in a strage called the replay buffer. To be more precise, DDPG updates the critic to minimize the MSE of the TD error for the mini-batch $E$ created from the replay buffer. Therefore, the mini-batch $E$ should be i.i.d. Hence, the mini-batch $E$ is made by randomly sampling $M$ data from the replay buffer to increase the variance of it. Then the critic is updated to minimize the loss function
 \begin{equation}
 	Loss = \frac{1}{M}\sum_{(s,a,s^{\prime})\in E} \{Q(s,a|\omega) - (r(s,a)+\gamma Q(s^{\prime},\pi(s^{\prime})|\omega))\}^2.
 \end{equation}\par
@@ -172,12 +172,12 @@ Next, update law of the actor is described. Because the actor is the representat
  \begin{equation}
 	\expect_{s\sim\rho^{\pi}}[\nabla_{\theta}\pi_{\theta}(s)\nabla_{a}Q(s, a|\omega)|_{a=\pi_{\theta}(s)}] \simeq \frac{1}{M}\sum_{s\in E}[\nabla_{\theta}\pi_{\theta}(s)\nabla_{a}Q(s, a|\omega)|_{a=\pi_{\theta}(s)}]. \label{expectation_approximation}
 \end{equation}
-Therefore, the accuracy of the approximation of the policy gradient largely depends on the accuracy of critic approximation and the distribution of mini-batch $E$.
+Therefore, the accuracy of the approximation of the policy gradient largely depends on the accuracy of the critic approximation and the distribution of the mini-batch $E$.
 
 
 \section{Problem Formulation}
 \subsection{Self-Triggered Control}
-We consider the control system in Fig \ref{image}.
+We consider the control system in Figure \ref{image}.
 \begin{figure}[t]
 	\centering
  	\includegraphics[width=10cm]{event.png}
@@ -188,7 +188,7 @@ Here, the system to be controled is a continuous-time system is given by
 	\dot{s} = h(s(t),u(t)) + \dot{w}\label{continuous_system}.
 \end{equation}
 where $u$ and $\dot{w}$ denote control input and process noise.\par
-In this paper, we call the observation of the state variable $s$ and the sending of the input signal to the actuator as "interaction". In the self-triggered control, the agent does not make interaction continuously, but after a communication interval $\tau$ determined by the agent itself. In order to express it mathematically, we assume that the agent's control law $\pi$ is a vector-valued function consisting of two elements, where the first element represents the input $u$ sent to the actuator, and the second element represents the interval $\tau$. Let $t_i$ be the time of the $i$-th communication, and $u_i$ be the input sent at $t_i$. The actuator continues to input $u_i$ until the next communication time. That is, the control input $u(t)$ at time $t$ is 
+In this paper, we call the observation of the state variable $s$ and the sending of the input signal to the actuator as ``interaction". In the self-triggered control, the agent does not make interaction continuously, but after a communication interval $\tau$ determined by the agent itself. In order to express it mathematically, we assume that the agent's control law $\pi$ is a vector-valued function consisting of two elements, where the first element represents the input $u$ sent to the actuator, and the second element represents the interval $\tau$. Let $t_i$ be the time of the $i$-th communication, and $u_i$ be the input sent at $t_i$. The actuator continues to input $u_i$ until the next communication time. That is, the control input $u(t)$ at time $t$ is 
 \begin{equation}
 	u(t) = u_i, \forall t \in [t_i, t_{i+1}).
 \end{equation} 
@@ -243,17 +243,13 @@ In order to converge to the origin state as quickly as possible with the minimum
 \end{equation}
 where
 \begin{equation}
-	V^{\pi}(s) = \int_{0}^{\infty} e^{-\alpha t}\expect_{w}[s(t)^{\top}Es(t)+u(t)^{\top}Fu(t)+\beta \delta_c(t)|s(0)=s]\textrm{d}t \label{such_that}
+	V^{\pi}(s) = \expect_{w}\left[\int_{0}^{\infty} e^{-\alpha t}\{s(t)^{\top}Es(t)+u(t)^{\top}Fu(t)\}\textrm{d}t + \beta\sum_{t\in T_c}e^{-\alpha t}|s(0)=s\right]\label{such_that}
 \end{equation}
-and $C(t)$ is a boolean function which denotes the agent interact at time $t$. $\delta_c(t)$ is the function such that
-\begin{equation}
-	\int_{k}^{k^{\prime}}e^{-\alpha t}\delta_c(t)dt=e^{-\alpha k}
-\end{equation} 
-where $k$ is an activation time and $k^{\prime}$ is the next one. If we separate the definite integral for each interval, we have 
+and $T_c$ is the history of the communication time when controlled by the policy $\pi$.  If we separate the definite integral for each interval, we have 
 \begin{align}
-	V^{\pi}(s) &= \sum_{i=0}^{\infty}\int_{t_i}^{t_{i+1}} e^{-\alpha t}\expect_{w}[s(t)^{\top}Es(t)+u_i^{\top}Fu_i+\beta \delta_c(t)|s(0)=s]\textrm{d}t \nonumber \\
-			 &= \sum_{i=0}^{\infty} e^{-\alpha t_i} \left(\int_{0}^{\tau_i}e^{-\alpha t}\expect_{w}[s(t)^{\top}Es(t)+u_i^{\top}Fu_i|s(0)=s_i]\textrm{d}t + \beta\right) \nonumber \\
-			 &= \sum_{i=0}^{\infty} e^{-\alpha t_i} r(s_i, \pi(s_i)) \label{self_acc_reward}.
+	V^{\pi}(s) &= \expect_{w}\left[\int_{0}^{\infty} e^{-\alpha t}\{s(t)^{\top}Es(t)+u(t)^{\top}Fu(t)\}\textrm{d}t + \beta\sum_{t\in T_c}e^{-\alpha t}|s(0)=s\right] \nonumber \\
+			 &= \expect_w\left[\sum_{i=0}^{\infty} e^{-\alpha t_i} \left(\int_{0}^{\tau_i}e^{-\alpha t}\expect_{w}[s(t)^{\top}Es(t)+u_i^{\top}Fu_i|s(0)=s_i]\textrm{d}t + \beta\right)|s(0)=s\right] \nonumber \\
+			 &= \expect_w\left[\sum_{i=0}^{\infty} e^{-\alpha t_i} r(s_i, \pi(s_i))|s(0)=s\right] \label{self_acc_reward}.
 \end{align}
 Here, $t_i$ is the time of the $i$-th communication and $s_i$ is the state at that time. Also, let $[u_i, \tau_i]=\pi(s_i)$, and let be the reward function $r(s, u, \tau)$ of each step as
 \begin{equation}
@@ -363,7 +359,9 @@ In this case, the average of the relative error
 \begin{equation}
 	\frac{|V^{\pi}(s)-Q(s, \pi(s)|\omega)|}{|V^{\pi}(s)|}
 \end{equation}
-at each point sampled in Figure \ref{Q_approximation} is 0.03. Thus, we can consider that the critic learned by Algorithm \ref{alg1} is a good approximation of $V^{\pi}$. Depending on the dimensions of the state variables, the number of epochs required for TD learning is shown in Table \ref{epoch}. 
+at each point sampled in Figure \ref{Q_approximation} is 0.03. Thus, we can consider that the critic learned by Algorithm \ref{alg1} is a good approximation of $V^{\pi}$. The dependency of computation complexity for dimension of state $s$ should be studied in the future.
+\if0
+Depending on the dimensions of the state variables, the number of epochs required for TD learning is shown in Table \ref{epoch}. 
 \begin{table}[htb]
   \begin{center}
     \begin{tabular}{|cc|} \hline
@@ -377,6 +375,7 @@ at each point sampled in Figure \ref{Q_approximation} is 0.03. Thus, we can cons
     \label{epoch}
   \end{center}
 \end{table}
+\fi
 
 \subsection{Naive Implementation}
 We start by considering an naive implementation for computing the exact policy gradient \eqref{PG_for_STC} without considering the computational complexity. Assume that the critic is learned with Alrogithm \ref{alg1}. Equation \eqref{PG_for_STC} is the expectation of
@@ -609,31 +608,35 @@ Yoshito Ohta, Associate Professor Kenji Kashima and Assistant Professor Kentaro 
                                          % Delete if you use chapter option.
 \begin{thebibliography}{20}
 \bibitem{ETC_intro}
-W. P. M. H. Heemels, K. H. Johansson, and P. Tabuada. ``An introduction to event-triggered and self-triggered control.” \textit{In Proc. of the 51st IEEE International Conference on Decision and Control}, 2012.
+W. P. M. H. Heemels, K. H. Johansson, and P. Tabuada. ``An introduction to event-triggered and self-triggered control.” \textit{In Proc. of the 51st IEEE International Conference on Decision and Control}, pp. 3270-3285, 2012.
 \bibitem{ETC}
-D. Baumann, J. J. Zhu, G. Martius, and S. Trimpe. ``Deep Reinforcement Learning for Event-Triggered Control.”  \textit{In Proc. of the 57th IEEE International Conference on Decision and Control}, 2018.
+D. Baumann, J. J. Zhu, G. Martius, and S. Trimpe. ``Deep Reinforcement Learning for Event-Triggered Control.”  In \textit{Proc. of the 57th IEEE International Conference on Decision and Control}, pp. 943-950, 2018.
 \bibitem{STC}
 T. Gommans, D. Antunes, T. Donkers, P. Tabuada, and M. Heemels. ``Self-triggered linear quadratic control.” \textit{Automatica}, vol. 50, no. 4, pp. 1279-1287, 2014.
 \bibitem{ECBF}
-G. Yang, C. Belta, and R. Tron. ``Self-triggered Control for Safety Critical Systems Using Control Barrier Functions."  \textit{In American Control Conference (ACC) Philadelphia, USA}, 2019.
+G. Yang, C. Belta, and R. Tron. ``Self-triggered Control for Safety Critical Systems Using Control Barrier Functions."  In \textit{Proc. of the American Control Conference},  pp. 4454-4459, 2019.
 \bibitem{RL}
-R. S. Sutton and A. G. Barto. ``Reinforcement Learning: An introduction" MIT Press. 1998.
+R. S. Sutton and A. G. Barto. \textit{Reinforcement Learning: An Introduction}, MIT Press, 1998.
 \bibitem{Q}
-C. J. Watkins, and P. Dayan. Q-learning. ``Machine Learning.", vol. 8, no. 3-4, pp. 279-292, 1992.
+C. J. Watkins, and P. Dayan. ``Q-learning." \textit{Machine Learning}, vol. 8, no. 3-4, pp. 279-292, 1992.
 \bibitem{DQN}
-V. Minh, K. Kavukcouglu, D. Silver. et al.. ``Human-level control through deep reinforcement learning." \textit{Nature 518}, pp.529-533, 2015.
+V. Minh, et al. ``Human-level control through deep reinforcement learning." \textit{Nature 518}, pp.529-533, 2015.
 \bibitem{DPG}
-D. Silver, G. Lever, N. Heess, T. Degris, D. Wierstra, et al.. ``Deterministic Policy Gradient Algorithms." \textit{ICML Beijing, China.}, 2014, Beijing.
+D. Silver, G. Lever, N. Heess, T. Degris, D. Wierstra and M. Riedmiller. ``Deterministic Policy Gradient Algorithms." In \textit{Proc. of the 31st International Conference on Machine Learning}, pp. 387-395, 2014.
 \bibitem{DDPG}
-T. P. Lillicrap, J. J. Hunt, A. Pritzel, N.Heess, T. Erez, Y. Tassa, D. Silver, and D. Wierstra. ``Continuous control with deep reinforcement learning." \textit{International Conference on Learning Representations}, 2015.
+T. P. Lillicrap, J. J. Hunt, A. Pritzel, N.Heess, T. Erez, Y. Tassa, D. Silver, and D. Wierstra. ``Continuous control with deep reinforcement learning." In \textit{Proc. of the 4th International Conference on Learning Representations}, 2016; arXiv: 1509.02971 v6.
 \bibitem{survey}
-I. Grondman, L. Busoniu, G. A. Lopes, and R. Babuska. ``A Survey of Actor-Critic Reinforcement Learning: Standard and Natural Policy Gradient." \textit{IEEE Transactions on Systems, Man, and Cybernetics, Part C (Applications and Reviews)}, 42(6):1291-1307, 2012.
+I. Grondman, L. Busoniu, G. A. Lopes, and R. Babuska. ``A Survey of Actor-Critic Reinforcement Learning: Standard and Natural Policy Gradient." \textit{IEEE Transactions on Systems, Man, and Cybernetics, Part C (Applications and Reviews)}, vol. 42, no. 6, pp. 1291-1307, 2012.
 \bibitem{off-PAC}
-T. Degris, M. White and R. Sutton. ``Off-Policy Actor-Critic." \textit{ICML Edinburgh, United Kingdom}, 2012.
+T. Degris, M. White and R. S. Sutton. ``Off-Policy Actor-Critic." In \textit{Proc. of the 29th International Conference on Machine Learning}, pp.179-186, 2012.
 \bibitem{approximation}
-R. S. Sutton, D. McAllester, S. Singh, and Y. Mansour. ``Policy gradient methods for reinforcement learning with function approximation." \textit{In Advances in Neural Information Processing Systems}, 2000.
+R. S. Sutton, D. McAllester, S. Singh, and Y. Mansour. ``Policy gradient methods for reinforcement learning with function approximation." In \textit{Advances in Neural Information Processing Systems}, pp. 1057-1063, 2000.
 \bibitem{Adam}
-D. P. Kingma and J. Ba. ``Adam: A Method for Stochastic Optimization." \textit{arXiv preprint arXiv: 1412.6980}, 2014.
+D. P. Kingma and J. Ba. ``Adam: A Method for Stochastic Optimization." In \textit{Proc. of the 3rd International Conference on Learning Representations}, 2015; arXiv: 1412.6980 v9.
+\bibitem{rein}
+T. Morimura. \textit{Reinforcement Learning}, Koudansha, 2019 (In Japanese).
+\bibitem{stochastic}
+A. Ohsumi. \textit{Introduction to Stochastic Systems}, Asakura Publishing, 2002 (In Japanese).
 
 \end{thebibliography}
 %%% If you want to use BibTeX, delete the above and insert code here.
@@ -652,7 +655,7 @@ We use the actor-critic method. The actor and the critic are expressed as neural
  	\includegraphics[width=10cm]{model.png}
  	\caption{Agent Model} \label{NN}
 \end{figure}\\
-The activation function ``original" shown in Fig \ref{NN} is defined as $9.99 \times \textrm{sigmoid} + 0.01$ to meet upper and lower limits of interval described in section 5.2 and 5.3.\par
+The activation function ``original" shown in Figure \ref{NN} is defined as $9.99 \times \textrm{sigmoid} + 0.01$ to meet upper and lower limits of interval described in section 5.2 and 5.3.\par
 
 %%% End of body %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fi
